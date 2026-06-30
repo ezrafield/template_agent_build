@@ -23,6 +23,8 @@ Do not commit secrets here.
 - Prefer read-only permissions until write access is required.
 - Record required setup steps in `docs/agent/COMMANDS.md`.
 - Use `servers.example.json` as a placeholder, not as a working secret-bearing config.
+- Run `make agent-tools-install` or `python scripts/bootstrap_agent_tools.py` to recreate project-local optional tools.
 - Keep Semble as the default project search profile.
 - Keep Serena optional; enable it only for projects that benefit from language-server semantics.
 - Keep RTK optional; fall back to raw commands whenever it is unavailable or compressed output is unclear.
+- Keep generated tool binaries, virtual environments, and caches ignored.

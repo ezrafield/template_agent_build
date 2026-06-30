@@ -30,6 +30,7 @@ Use this order:
 5. Use Semble for natural-language code search:
    - `semble search "<task>" . --content code`
    - `semble search "<task>" . --content all` when docs/config may matter
+   - `make code-search QUERY="<task>" CONTENT=all` when using the project-local tool wrapper
 6. Use `rg` for exact symbol/string confirmation.
 7. Use Serena when symbol references, declarations, implementations, diagnostics, or safe refactors are needed.
 8. Read full files only after retrieval identifies likely relevant targets.
@@ -41,6 +42,7 @@ Use this order:
 
 ## Commands
 - Install: `make install`
+- Agent tools: `make agent-tools-install`, `make agent-tools-check`
 - Run app: `make dev`
 - Unit tests: `make test-unit`
 - Integration tests: `make test-integration`
@@ -49,6 +51,7 @@ Use this order:
 - Docs map: `make docs-map`
 - Agent setup: `make agent-setup`
 - Agent audits: `make validate-agent-docs`, `make check-context-staleness`, `make audit-module-cards`, `make audit-memory`
+- Source understanding: `make code-search QUERY="..." CONTENT=all`, `make repomix`, `make ast-grep PATTERN="..." LANG=python`
 - Compact output helpers: `make git-status`, `make git-diff`, `make test-unit-compact`, `make lint-compact`, `make typecheck-compact`
 
 ## Long-Term Memory
@@ -63,6 +66,8 @@ Use `.agent/memory/` as guidance, not truth.
 For noisy terminal commands, prefer compressed output.
 
 Use RTK when available:
+- `make git-status`
+- `make git-diff`
 - `rtk git status`
 - `rtk git diff`
 - `rtk grep`

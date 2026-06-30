@@ -27,9 +27,17 @@ Use optionally:
 ```bash
 semble search "<task>" . --content code
 semble search "<task>" . --content all
+make code-search QUERY="<task>" CONTENT=all
 ```
 
 Use `--content code` for implementation tasks. Use `--content all` when docs, tests, config, prompts, or generated context may affect the answer.
+When global PATH is not configured, use the project wrapper:
+
+```bash
+python scripts/run_agent_tool.py semble search "<task>" . --content all
+```
+
+The wrapper sets Semble's index cache to `.agent/context-cache/semble` and Hugging Face model cache to `tools/agent/.hf-cache`; both are ignored. On Windows it also disables Hugging Face symlink caching so Semble works without Developer Mode or administrator privileges.
 
 6. Confirm exact names with `rg`:
 

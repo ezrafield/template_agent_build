@@ -36,10 +36,13 @@ That graph can support:
 Recommended commands:
 
 ```bash
+make code-search QUERY="auth service" CONTENT=all
 make understand
 make understand-dashboard
 make understand-search QUERY="auth service"
 ```
+
+If `make` is unavailable, use `python scripts/run_agent_tool.py semble search "auth service" . --content all` for Semble and the Python graph helper scripts directly.
 
 ## Agent Workflow
 

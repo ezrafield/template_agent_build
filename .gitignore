@@ -7,6 +7,16 @@ build/
 __pycache__/
 *.pyc
 
+# Project-local agent tool artifacts
+tools/agent/.venv/
+tools/agent/python/*/.venv/
+tools/agent/node_modules/
+tools/agent/bin/
+tools/agent/.uv-cache/
+tools/agent/.npm-cache/
+tools/agent/.hf-cache/
+tools/agent/.downloads/
+
 # Agent-local artifacts
 .agent/traces/
 .agent/context-cache/

@@ -16,6 +16,10 @@ Provides knowledge-graph based source discovery, search, onboarding, and archite
 ## Public Interfaces
 - `semble search "<task>" . --content code`
 - `semble search "<task>" . --content all`
+- `make code-search QUERY="<task>" CONTENT=all`
+- `python scripts/run_agent_tool.py semble search "<task>" . --content all`
+- `make ast-grep PATTERN="..." LANG=python`
+- `make repomix`
 - `.sembleignore`
 - `.understand-anything/knowledge-graph.json`
 - `make understand`
@@ -33,8 +37,9 @@ Provides knowledge-graph based source discovery, search, onboarding, and archite
 - Keep `.understandignore` aligned with generated and dependency folders.
 
 ## Common Tasks
+- Install local agent tools: run `make agent-tools-install`.
 - Refresh graph: run `make understand`.
-- Search code naturally: run `semble search "<task>" . --content code`.
+- Search code naturally: run `make code-search QUERY="<task>" CONTENT=code`.
 - Confirm exact symbols: run `rg "ExactSymbolOrString"`.
 - Evaluate retrieval fixtures: run `make retrieval-eval`.
 - Search graph: run `make understand-search QUERY="term"`.

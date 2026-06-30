@@ -8,6 +8,8 @@
     "test": "echo \"Run tests here.\"",
     "lint": "echo \"Run lint checks here.\"",
     "typecheck": "echo \"Run type checks here.\"",
+    "agent-tools-install": "python scripts/bootstrap_agent_tools.py",
+    "agent-tools-check": "python scripts/bootstrap_agent_tools.py --check",
     "docs-map": "python scripts/generate_codemap.py",
     "agent-setup": "python scripts/agent_setup.py",
     "validate-agent-docs": "python scripts/validate_agent_docs.py",

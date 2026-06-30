@@ -13,7 +13,7 @@ For every non-trivial task:
 
 ## Token-Saving Behavior
 - Do not explore unrelated directories.
-- Use Semble for natural-language code search before reading many files.
+- Use Semble for natural-language code search before reading many files. Prefer `make code-search QUERY="..." CONTENT=all` when relying on project-local tools.
 - Use `rg` for exact symbol and string confirmation.
 - Use Serena only when symbol references, declarations, implementations, diagnostics, or safe refactors require language-server semantics.
 - Use compressed command output for noisy commands when RTK is available.
@@ -29,6 +29,7 @@ For every non-trivial task:
 
 ## Command Output
 - Prefer RTK for noisy commands such as `git status`, `git diff`, tests, lint, typecheck, search, and logs.
+- Use `make git-status`, `make git-diff`, and compact make targets to prefer workspace-local RTK with raw fallback.
 - If compressed output is unclear, rerun the smallest relevant command in raw mode.
 - Do not hide failures; preserve exit codes, stack traces, failed assertions, and actionable errors.
 

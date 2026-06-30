@@ -4,6 +4,8 @@ This directory documents the local source-code knowledge graph workflow.
 
 Generated graph outputs are ignored by default. The committed files here are setup and policy files only.
 
+Understand Anything remains an agent/plugin runtime integration. The project-local agent-tool bootstrap stores compatible setup notes and verification helpers, but it does not install the Understand Anything runtime or generate graph data.
+
 ## Generate The Graph
 
 Use the installed Understand Anything runtime:

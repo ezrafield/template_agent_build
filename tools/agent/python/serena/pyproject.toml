@@ -1,0 +1,11 @@
+[project]
+name = "agent-tools-serena"
+version = "0.1.0"
+description = "Project-local Serena environment."
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "serena-agent==1.5.3",
+]
+
+[tool.uv]
+package = false

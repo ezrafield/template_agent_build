@@ -13,9 +13,24 @@ Semble is the default natural-language retrieval layer for this template.
 ```bash
 semble search "<task>" . --content code
 semble search "<task>" . --content all
+make code-search QUERY="<task>" CONTENT=all
+python scripts/run_agent_tool.py semble search "<task>" . --content all
 ```
 
 Use `--content code` for implementation tasks. Use `--content all` when docs, specs, config, or tests may matter.
+
+## Project-Local Bootstrap
+
+Semble is pinned in `tools/agent/python/semble/pyproject.toml` and `tools/agent/python/semble/uv.lock` as `semble[mcp]==0.4.1`.
+
+```bash
+make agent-tools-install
+make agent-tools-check
+```
+
+The wrapper sets `SEMBLE_CACHE_LOCATION` to `.agent/context-cache/semble`, which is ignored.
+
+It also sets `HF_HOME` to `tools/agent/.hf-cache` and disables Hugging Face symlink caching so Windows users do not need Developer Mode or administrator privileges for the first model download.
 
 ## Agent Policy
 

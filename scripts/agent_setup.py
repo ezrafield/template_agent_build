@@ -42,7 +42,29 @@ def detect_commands() -> dict[str, str]:
     makefile = ROOT / "Makefile"
     if makefile.exists():
         make_text = makefile.read_text(encoding="utf-8")
-        for name in ["test", "test-unit", "test-integration", "lint", "typecheck", "dev"]:
+        for name in [
+            "agent-tools-install",
+            "agent-tools-check",
+            "test",
+            "test-unit",
+            "test-integration",
+            "lint",
+            "typecheck",
+            "dev",
+            "code-search",
+            "repomix",
+            "ast-grep",
+            "rtk-gain",
+            "git-status",
+            "git-diff",
+            "test-unit-compact",
+            "lint-compact",
+            "typecheck-compact",
+            "understand",
+            "understand-search",
+            "understand-dashboard",
+            "retrieval-eval",
+        ]:
             if f"{name}:" in make_text:
                 commands[name] = f"make {name}"
 
@@ -59,6 +81,17 @@ def write_commands(commands: dict[str, str]) -> None:
         lines.append("- TODO: add install, test, lint, typecheck, and dev commands.")
     lines.extend(
         [
+            "",
+            "Agent tool bootstrap:",
+            "- agent-tools-install: `make agent-tools-install`",
+            "- agent-tools-check: `make agent-tools-check`",
+            "- no-make install: `python scripts/bootstrap_agent_tools.py`",
+            "- no-make check: `python scripts/bootstrap_agent_tools.py --check`",
+            "",
+            "Source understanding helpers:",
+            "- code-search: `make code-search QUERY=\"source understanding\" CONTENT=all`",
+            "- ast-grep: `make ast-grep PATTERN=\"def $NAME($$$ARGS): $$$BODY\" LANG=python`",
+            "- repomix: `make repomix`",
             "",
             "Optional compact-output helpers:",
             "- rtk-gain: `make rtk-gain`",

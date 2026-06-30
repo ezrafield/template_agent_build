@@ -40,6 +40,7 @@ they conflict with memory.
 - `.claude/agents/`: Claude Code subagent templates.
 - `.claude/hooks/`: optional lightweight hook examples.
 - `.mcp/`: MCP setup notes and candidate server documentation.
+- `tools/agent/`: pinned manifests for project-local optional agent tools.
 - `.understand-anything/`: Understand Anything setup notes.
 - `scripts/`: deterministic helpers for setup, audits, context generation, and memory.
 - `eval/`: retrieval and regression evaluation placeholders.
@@ -54,6 +55,8 @@ they conflict with memory.
 | Semble | Natural-language code and docs retrieval | Context discovery |
 | `rg` | Exact string, symbol, and path confirmation | Verification |
 | Serena | References, declarations, diagnostics, and safe refactors | Advanced coding setup |
+| ast-grep | Structural code search | Pattern matching |
+| Repomix | Repository export/bundling | External model review |
 | RTK | Compressed noisy terminal output | Command execution |
 | Understand Anything | Graph and dependency reasoning | Architecture understanding |
 
@@ -61,12 +64,69 @@ they conflict with memory.
 
 ```bash
 make install
+make agent-tools-check
 make test-unit
 make lint
 ```
 
 This is a template, so most project commands are placeholders until you wire
 them to your actual stack.
+
+## Project-Local Agent Tools
+
+Optional agent tools are pinned under `tools/agent/` so a fresh checkout can
+recreate the same local tool stack without global installs:
+
+```bash
+make agent-tools-install
+make agent-tools-check
+```
+
+If `make` is not available on Windows, use:
+
+```bash
+python scripts/bootstrap_agent_tools.py
+python scripts/bootstrap_agent_tools.py --check
+```
+
+Prerequisites are deliberately small and machine-level: Python, `uv`, Node.js
+22+, and `npm`. The bootstrap handles the project-local pieces after that.
+
+What is committed:
+
+- Semble manifest and lock: `tools/agent/python/semble/`
+- Serena manifest and lock: `tools/agent/python/serena/`
+- Repomix and ast-grep npm manifest and lock: `tools/agent/package*.json`
+- RTK release manifest and checksums: `tools/agent/rtk-manifest.json`
+- Bootstrap and wrapper scripts under `scripts/`
+
+What is generated and ignored:
+
+- Python virtual environments under `tools/agent/python/*/.venv/`
+- Node dependencies under `tools/agent/node_modules/`
+- RTK binary under `tools/agent/bin/`
+- uv, npm, Hugging Face, Semble, and download caches
+
+Semble and Serena intentionally use separate `uv` environments. Serena
+`1.5.3` pins `pathspec==0.12.1`, while Semble search needs a newer `pathspec`
+API, so splitting the environments preserves both pinned tools and keeps
+`semble search` working. Python 3.13 is requested for these environments to
+avoid Python 3.14 compatibility warnings in Serena's dependencies.
+
+Run tools through the workspace wrapper when you do not want to rely on PATH:
+
+```bash
+make code-search QUERY="source understanding" CONTENT=all
+make git-status
+python scripts/run_agent_tool.py semble search "source understanding" . --content all
+python scripts/run_agent_tool.py serena --help
+python scripts/run_agent_tool.py repomix --version
+python scripts/run_agent_tool.py ast-grep --version
+```
+
+On a copied workspace, rerun `make agent-tools-install` or
+`python scripts/bootstrap_agent_tools.py` if the OS, CPU architecture, Python,
+Node, or absolute path changed.
 
 ## Installing Into Another Project
 
@@ -87,7 +147,11 @@ After install, run:
 
 ```bash
 python scripts/agent_setup.py
+make agent-tools-install
 ```
+
+If `make` is unavailable, run `python scripts/bootstrap_agent_tools.py`
+instead.
 
 The setup script detects the stack and common commands, refreshes
 `docs/agent/CODEMAP.md`, creates missing module cards, ensures task and memory

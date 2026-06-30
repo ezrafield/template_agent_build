@@ -25,17 +25,57 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `scripts/collect_task_trace.py` | Create a task trace from current changed files. |
 | `scripts/search_understand_graph.py` | Search the Understand Anything graph without loading it all into context. |
 | `scripts/validate_understand_graph.py` | Validate the expected graph shape before graph-backed work. |
+| `scripts/bootstrap_agent_tools.py` | Recreate project-local Semble, Serena, Repomix, ast-grep, and RTK tools. |
+| `scripts/run_agent_tool.py` | Run project-local tools without requiring global PATH setup. |
 | `eval/retrieval/run_retrieval_eval.py` | Check whether Semble searches return expected context paths. |
 
 ## Command Output
 
-RTK is an optional output-compression layer for noisy local commands. Use the compact make targets when available, and fall back to the original command when RTK is missing or compressed output is insufficient.
+RTK is an optional output-compression layer for noisy local commands. Use the compact make targets when available; they prefer the workspace-local RTK binary and fall back to the raw command only when RTK is missing.
+
+## Project-Local Tools
+
+Pinned tool manifests live in `tools/agent/`. Commit manifests and lockfiles, but do not commit generated environments, caches, or binaries.
+
+```bash
+make agent-tools-install
+make agent-tools-check
+python scripts/run_agent_tool.py semble --help
+python scripts/run_agent_tool.py rtk --version
+```
+
+If `make` is unavailable, run `python scripts/bootstrap_agent_tools.py` and `python scripts/bootstrap_agent_tools.py --check` directly.
+
+Prerequisites:
+- Python
+- `uv`
+- Node.js 22+
+- `npm`
+
+Committed manifests:
+- `tools/agent/python/semble/pyproject.toml` and `uv.lock`
+- `tools/agent/python/serena/pyproject.toml` and `uv.lock`
+- `tools/agent/package.json` and `package-lock.json`
+- `tools/agent/rtk-manifest.json`
+
+Generated and ignored:
+- `tools/agent/python/*/.venv/`
+- `tools/agent/node_modules/`
+- `tools/agent/bin/`
+- `tools/agent/.uv-cache/`
+- `tools/agent/.npm-cache/`
+- `tools/agent/.hf-cache/`
+- `.agent/context-cache/semble/`
+
+Semble and Serena use separate `uv` environments because Serena pins `pathspec==0.12.1`, while Semble search needs a newer `pathspec` API.
 
 ## Make Targets
 
 ```bash
 make docs-map
 make agent-setup
+make agent-tools-install
+make agent-tools-check
 make update-module-cards
 make targeted-tests
 make validate-agent-docs
@@ -50,6 +90,9 @@ make audit-memory-staleness
 make audit-memory
 make check-architecture-boundaries
 make task-trace
+make code-search QUERY="service" CONTENT=all
+make repomix
+make ast-grep PATTERN="def $NAME($$$ARGS): $$$BODY" LANG=python
 make rtk-gain
 make git-status
 make git-diff

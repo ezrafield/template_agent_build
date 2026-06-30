@@ -1,13 +1,19 @@
-RTK := $(shell command -v rtk 2>/dev/null)
+QUERY ?=
+CONTENT ?= code
+PATTERN ?=
+LANG ?= python
+REPOMIX_ARGS ?= .
 
-define maybe_rtk
-$(if $(RTK),rtk $(1),$(1))
-endef
+.PHONY: install agent-tools-install agent-tools-check dev test test-unit test-integration lint typecheck docs-map agent-setup validate-docs validate-agent-docs detect-large-context-docs detect-large-agent-files check-context-staleness audit-module-cards audit-task-logs validate-memory-links audit-memory-staleness audit-memory check-architecture-boundaries update-module-cards targeted-tests task-trace extract-task-memory code-search repomix ast-grep rtk-gain git-status git-diff test-unit-compact lint-compact typecheck-compact understand understand-dashboard understand-search validate-understand-graph retrieval-eval
 
-.PHONY: install dev test test-unit test-integration lint typecheck docs-map agent-setup validate-docs validate-agent-docs detect-large-context-docs detect-large-agent-files check-context-staleness audit-module-cards audit-task-logs validate-memory-links audit-memory-staleness audit-memory check-architecture-boundaries update-module-cards targeted-tests task-trace extract-task-memory rtk-gain git-status git-diff test-unit-compact lint-compact typecheck-compact understand understand-dashboard understand-search validate-understand-graph retrieval-eval
-
-install:
+install: agent-tools-install
 	@echo "Install project dependencies here."
+
+agent-tools-install:
+	python scripts/bootstrap_agent_tools.py
+
+agent-tools-check:
+	python scripts/bootstrap_agent_tools.py --check
 
 dev:
 	@echo "Start the development server here."
@@ -76,23 +82,32 @@ task-trace:
 extract-task-memory:
 	python scripts/extract_task_memory.py $(TASK)
 
+code-search:
+	python scripts/run_agent_tool.py semble search "$(QUERY)" . --content "$(CONTENT)"
+
+repomix:
+	python scripts/run_agent_tool.py repomix $(REPOMIX_ARGS)
+
+ast-grep:
+	python scripts/run_agent_tool.py ast-grep run --pattern "$(PATTERN)" --lang "$(LANG)" .
+
 rtk-gain:
-	@if command -v rtk >/dev/null 2>&1; then rtk gain; else echo "rtk not installed"; fi
+	@python scripts/run_agent_tool.py rtk gain || echo "rtk not installed or not initialized"
 
 git-status:
-	$(call maybe_rtk,git status)
+	python scripts/run_agent_tool.py --fallback git status -- rtk git status
 
 git-diff:
-	$(call maybe_rtk,git diff)
+	python scripts/run_agent_tool.py --fallback git diff -- rtk git diff
 
 test-unit-compact:
-	$(call maybe_rtk,make test-unit)
+	python scripts/run_agent_tool.py --fallback make test-unit -- rtk test make test-unit
 
 lint-compact:
-	$(call maybe_rtk,make lint)
+	python scripts/run_agent_tool.py --fallback make lint -- rtk proxy make lint
 
 typecheck-compact:
-	$(call maybe_rtk,make typecheck)
+	python scripts/run_agent_tool.py --fallback make typecheck -- rtk proxy make typecheck
 
 understand:
 	python scripts/understand_placeholder.py

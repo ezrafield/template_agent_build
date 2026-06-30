@@ -31,3 +31,5 @@ Model Context Protocol servers should be added only when they provide useful ext
 Use `.mcp/README.md` to document candidate MCPs for a project. Use `.mcp/servers.example.json` as a non-secret placeholder. Add real MCP configuration only when the team knows which runtime will consume it.
 
 RTK is documented under `.mcp/rtk.md` because it is an agent-runtime integration point, but it is not required to be an MCP server. Keep it optional and fail open to raw commands.
+
+Project-local tool manifests live under `tools/agent/`. Use `make agent-tools-install` or `python scripts/bootstrap_agent_tools.py` to recreate pinned local CLIs before configuring agent-specific MCP clients. Semble and Serena are intentionally installed into separate `uv` environments to avoid incompatible transitive dependency pins.
