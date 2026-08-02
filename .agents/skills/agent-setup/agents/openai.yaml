@@ -1,0 +1,6 @@
+interface:
+  display_name: "Agent Setup"
+  short_description: "Bootstrap and validate the project agent kit"
+  default_prompt: "Use $agent-setup to bootstrap and validate this repository's agent kit."
+policy:
+  allow_implicit_invocation: true

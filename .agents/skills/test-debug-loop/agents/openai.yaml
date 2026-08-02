@@ -1,0 +1,6 @@
+interface:
+  display_name: "Test Debug Loop"
+  short_description: "Isolate, fix, and verify test or runtime failures"
+  default_prompt: "Use $test-debug-loop to isolate and fix this failing test or runtime error."
+policy:
+  allow_implicit_invocation: true

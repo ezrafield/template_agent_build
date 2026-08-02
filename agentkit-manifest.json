@@ -1,11 +1,93 @@
 {
+  "schema_version": 2,
   "name": "agent-native-template",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Progressive-context agent kit files for installation into existing projects.",
+  "runtime": {
+    "primary_host": "codex",
+    "supported_hosts": ["codex", "claude-code"],
+    "required_commands": ["python", "git", "rg"],
+    "optional_commands": ["make", "semble", "serena", "rtk"],
+    "optional_integrations": ["understand-anything"],
+    "codex_cli_ci_version": "0.146.0"
+  },
+  "skills": [
+    {
+      "name": "agent-setup",
+      "path": ".agents/skills/agent-setup",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": ["python"],
+      "optional_commands": ["make"]
+    },
+    {
+      "name": "architecture-decision",
+      "path": ".agents/skills/architecture-decision",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": [],
+      "optional_commands": []
+    },
+    {
+      "name": "code-review",
+      "path": ".agents/skills/code-review",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": ["git", "rg"],
+      "optional_commands": []
+    },
+    {
+      "name": "memory-maintenance",
+      "path": ".agents/skills/memory-maintenance",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": ["python"],
+      "optional_commands": ["make"]
+    },
+    {
+      "name": "repo-navigator",
+      "path": ".agents/skills/repo-navigator",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": ["rg"],
+      "optional_commands": ["semble", "serena"],
+      "optional_integrations": ["understand-anything"]
+    },
+    {
+      "name": "safe-implementation",
+      "path": ".agents/skills/safe-implementation",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": ["git"],
+      "optional_commands": []
+    },
+    {
+      "name": "task-handoff",
+      "path": ".agents/skills/task-handoff",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": [],
+      "optional_commands": []
+    },
+    {
+      "name": "test-debug-loop",
+      "path": ".agents/skills/test-debug-loop",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": [],
+      "optional_commands": []
+    }
+  ],
+  "guardrail_templates": [
+    ".codex/templates/hooks.json",
+    ".codex/templates/default.rules"
+  ],
   "included_harness_files": [
+    "AGENTS.override.md.example",
     ".agents/skills/",
     ".claude/agents/",
     ".claude/hooks/",
+    ".codex/templates/",
     ".mcp/README.md",
     ".mcp/rtk.md",
     ".mcp/servers.example.json",
@@ -17,7 +99,10 @@
     ".understand-anything/.understandignore",
     "docs/agent/",
     "scripts/",
-    "eval/retrieval/"
+    "eval/agent/",
+    "eval/retrieval/",
+    "eval/rules/",
+    "eval/skills/"
   ],
   "merge_files": [
     "AGENTS.md",

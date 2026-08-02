@@ -16,7 +16,11 @@ def newest_source_mtime() -> float:
     for directory_name in SOURCE_DIRS:
         directory = ROOT / directory_name
         if directory.exists():
-            mtimes.extend(path.stat().st_mtime for path in directory.rglob("*") if path.is_file())
+            mtimes.extend(
+                path.stat().st_mtime
+                for path in directory.rglob("*")
+                if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+            )
     return max(mtimes, default=0)
 
 

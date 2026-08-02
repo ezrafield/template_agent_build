@@ -10,7 +10,11 @@ REQUIRED_HEADINGS = ["## Responsibility", "## Key Files", "## Public Interfaces"
 def main() -> None:
     problems = []
     if SRC.exists():
-        for directory in sorted(path for path in SRC.iterdir() if path.is_dir()):
+        for directory in sorted(
+            path
+            for path in SRC.iterdir()
+            if path.is_dir() and path.name != "__pycache__" and not path.name.startswith(".")
+        ):
             card = CARDS / f"{directory.name}.md"
             if not card.exists():
                 problems.append(f"Missing module card for {directory.relative_to(ROOT).as_posix()}/")

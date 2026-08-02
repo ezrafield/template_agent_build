@@ -45,6 +45,7 @@ def detect_commands() -> dict[str, str]:
         for name in [
             "agent-tools-install",
             "agent-tools-check",
+            "agent-kit-check",
             "test",
             "test-unit",
             "test-integration",
@@ -64,6 +65,10 @@ def detect_commands() -> dict[str, str]:
             "understand-search",
             "understand-dashboard",
             "retrieval-eval",
+            "validate-agent-assets",
+            "codex-guardrails-enable",
+            "codex-runtime-check",
+            "skill-routing-eval",
         ]:
             if f"{name}:" in make_text:
                 commands[name] = f"make {name}"
@@ -106,6 +111,13 @@ def write_commands(commands: dict[str, str]) -> None:
             "- validate-memory-links: `make validate-memory-links`",
             "- audit-memory-staleness: `make audit-memory-staleness`",
             "- audit-memory: `make audit-memory`",
+            "",
+            "Codex customization:",
+            "- validate-agent-assets: `make validate-agent-assets`",
+            "- agent-kit-check: `make agent-kit-check`",
+            "- codex-guardrails-enable: `make codex-guardrails-enable`",
+            "- codex-runtime-check: `make codex-runtime-check`",
+            "- skill-routing-eval: `make skill-routing-eval`",
         ]
     )
     (ROOT / "docs" / "agent" / "COMMANDS.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -192,7 +204,7 @@ def main() -> None:
     for script in [
         "scripts/generate_codemap.py",
         "scripts/update_module_cards.py",
-        "scripts/validate_agent_docs.py",
+        "scripts/validate_agent_assets.py",
     ]:
         if run_script(script) != 0:
             failures.append(script)

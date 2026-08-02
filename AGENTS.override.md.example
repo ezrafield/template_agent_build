@@ -1,0 +1,13 @@
+# Temporary Root Instruction Override
+
+This file is an example. Copy it to `AGENTS.override.md` only when the root
+instructions must be replaced temporarily. Because an override replaces
+`AGENTS.md` at the same directory level, restate every project rule that must
+remain active.
+
+- Read `docs/agent/INDEX.md` before non-trivial work.
+- Preserve user-owned changes and keep work scoped to the request.
+- Do not modify database migrations during this task.
+- Run targeted tests only unless broader verification is explicitly requested.
+- Present a patch plan before editing authentication or authorization code.
+- Report changed files, commands run, and remaining risks.

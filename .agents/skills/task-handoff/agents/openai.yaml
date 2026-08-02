@@ -1,0 +1,6 @@
+interface:
+  display_name: "Task Handoff"
+  short_description: "Capture concise state for task continuation"
+  default_prompt: "Use $task-handoff to capture the current task state for a clean continuation."
+policy:
+  allow_implicit_invocation: true

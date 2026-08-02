@@ -1,0 +1,6 @@
+interface:
+  display_name: "Safe Implementation"
+  short_description: "Implement scoped code changes with verification"
+  default_prompt: "Use $safe-implementation to implement this change with focused tests and documentation."
+policy:
+  allow_implicit_invocation: true

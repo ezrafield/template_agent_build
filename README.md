@@ -5,8 +5,9 @@ coding agents such as Codex, Claude Code, and similar tools.
 
 The core idea is progressive context loading: keep auto-loaded instructions
 short, route agents through a small index, and load richer docs only when the
-task needs them. The template now also includes lightweight long-term memory so
-future agents can reuse vetted lessons without reading old task logs.
+task needs them. Version 0.3.0 adds eight discoverable Codex skills, unified
+agent-asset validation, upgrade-safe installer ownership, and opt-in local
+hooks and command rules.
 
 The memory layer is inspired by PlugMem's semantic, procedural, and episodic
 taxonomy, but stays dependency-free: Markdown cards, a JSON index, and small
@@ -36,9 +37,10 @@ they conflict with memory.
 - `.agent/memory/`: semantic and procedural long-term memory.
 - `.agent/tasks/`: episodic task logs and audit trails.
 - `.agent/plans/`: lightweight plan lifecycle folders and template.
-- `.agents/skills/`: reusable Codex-style skill templates.
+- `.agents/skills/`: eight reusable Codex skills with frontmatter and UI metadata.
 - `.claude/agents/`: Claude Code subagent templates.
 - `.claude/hooks/`: optional lightweight hook examples.
+- `.codex/templates/`: reviewed templates for machine-local opt-in hooks and rules.
 - `.mcp/`: MCP setup notes and candidate server documentation.
 - `tools/agent/`: pinned manifests for project-local optional agent tools.
 - `.understand-anything/`: Understand Anything setup notes.
@@ -65,6 +67,7 @@ they conflict with memory.
 ```bash
 make install
 make agent-tools-check
+make validate-agent-assets
 make test-unit
 make lint
 ```
@@ -136,10 +139,15 @@ From a checkout of this template:
 ./install.sh /path/to/project
 ```
 
-The installer reads `agentkit-manifest.json`, backs up existing agent config
-under `.agentkit/backups/`, merges `AGENTS.md` and `CLAUDE.md`, copies harness
-files, copies starter `.agent/` files only when missing, and records installed
-paths in `.agentkit-installed-files`.
+The schema-v2 installer reads `agentkit-manifest.json`, backs up existing agent
+config under `.agentkit/backups/`, merges `AGENTS.md` and `CLAUDE.md`, copies
+harness files, copies starter `.agent/` files only when missing, and records
+kit-owned paths in `.agentkit-installed-files`.
+
+On update, obsolete recorded kit files are backed up and pruned. Merged
+entrypoints, copy-if-missing memory, and unrecorded project files are never
+pruned. Run `make agent-kit-check` to validate the manifest, installed files,
+and required commands.
 
 Use `./update.sh /path/to/project` to refresh the harness later.
 
@@ -148,6 +156,7 @@ After install, run:
 ```bash
 python scripts/agent_setup.py
 make agent-tools-install
+make agent-kit-check
 ```
 
 If `make` is unavailable, run `python scripts/bootstrap_agent_tools.py`
@@ -156,6 +165,27 @@ instead.
 The setup script detects the stack and common commands, refreshes
 `docs/agent/CODEMAP.md`, creates missing module cards, ensures task and memory
 scaffolding exists, and runs validation.
+
+## Codex Guardrails
+
+Fresh clones contain no active project hooks or command rules. To opt in on one
+machine:
+
+```bash
+make codex-guardrails-enable
+make codex-runtime-check
+```
+
+The first command generates ignored `.codex/hooks.json` and
+`.codex/rules/default.rules` files with absolute local handler paths and refuses
+to overwrite existing configuration. Restart Codex, open `/hooks`, review the
+definitions, and trust them explicitly.
+
+The hooks check startup dependencies, block strong secret patterns without
+logging prompt contents, and validate changed agent assets at Stop. The command
+rules prompt for sensitive package, push, reset, migration, and deployment
+operations and forbid exact catastrophic root deletions. They contain no
+out-of-sandbox `allow` rules.
 
 ## Agent Memory Workflow
 
@@ -191,6 +221,9 @@ specifications, and agent docs remain authoritative.
 
 ```bash
 make validate-agent-docs
+make validate-agent-assets
+make agent-kit-check
+make codex-runtime-check
 make check-context-staleness
 make audit-module-cards
 make audit-task-logs
@@ -201,6 +234,11 @@ make detect-large-context-docs
 
 Use audits as warnings during setup and stricter gates before sharing the kit
 with a team.
+
+`make skill-routing-eval` runs an authenticated, read-only Codex routing corpus
+and reports precision, recall, forbidden activations, and collisions. It is
+observational rather than a pull-request gate until repeated runs establish a
+stable baseline.
 
 ## Source Understanding
 

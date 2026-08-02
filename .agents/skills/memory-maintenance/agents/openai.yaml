@@ -1,0 +1,6 @@
+interface:
+  display_name: "Memory Maintenance"
+  short_description: "Maintain verified semantic and procedural memory"
+  default_prompt: "Use $memory-maintenance to review and promote durable lessons into project memory."
+policy:
+  allow_implicit_invocation: true

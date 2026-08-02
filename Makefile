@@ -4,7 +4,7 @@ PATTERN ?=
 LANG ?= python
 REPOMIX_ARGS ?= .
 
-.PHONY: install agent-tools-install agent-tools-check dev test test-unit test-integration lint typecheck docs-map agent-setup validate-docs validate-agent-docs detect-large-context-docs detect-large-agent-files check-context-staleness audit-module-cards audit-task-logs validate-memory-links audit-memory-staleness audit-memory check-architecture-boundaries update-module-cards targeted-tests task-trace extract-task-memory code-search repomix ast-grep rtk-gain git-status git-diff test-unit-compact lint-compact typecheck-compact understand understand-dashboard understand-search validate-understand-graph retrieval-eval
+.PHONY: install agent-tools-install agent-tools-check agent-kit-check dev test test-unit test-integration lint typecheck docs-map agent-setup validate-docs validate-agent-docs validate-agent-assets codex-guardrails-enable codex-runtime-check skill-routing-eval detect-large-context-docs detect-large-agent-files check-context-staleness audit-module-cards audit-task-logs validate-memory-links audit-memory-staleness audit-memory check-architecture-boundaries update-module-cards targeted-tests task-trace extract-task-memory code-search repomix ast-grep rtk-gain git-status git-diff test-unit-compact lint-compact typecheck-compact understand understand-dashboard understand-search validate-understand-graph retrieval-eval
 
 install: agent-tools-install
 	@echo "Install project dependencies here."
@@ -15,19 +15,23 @@ agent-tools-install:
 agent-tools-check:
 	python scripts/bootstrap_agent_tools.py --check
 
+agent-kit-check:
+	python scripts/agentkit_installer.py check --source . --target .
+
 dev:
 	@echo "Start the development server here."
 
 test: test-unit test-integration
 
 test-unit:
-	@echo "Run unit tests here."
+	python -m pytest tests/unit tests/agent -q
 
 test-integration:
-	@echo "Run integration tests here."
+	python -m pytest tests/integration -q
 
 lint:
-	@echo "Run lint checks here."
+	python -m compileall -q src scripts eval tests
+	python scripts/validate_agent_assets.py
 
 typecheck:
 	@echo "Run type checks here."
@@ -43,6 +47,18 @@ validate-docs:
 
 validate-agent-docs:
 	python scripts/validate_agent_docs.py
+
+validate-agent-assets:
+	python scripts/validate_agent_assets.py
+
+codex-guardrails-enable:
+	python scripts/enable_codex_guardrails.py
+
+codex-runtime-check:
+	python scripts/check_codex_runtime.py
+
+skill-routing-eval:
+	python eval/skills/run_skill_routing_eval.py
 
 detect-large-context-docs:
 	python scripts/detect_large_context_docs.py
