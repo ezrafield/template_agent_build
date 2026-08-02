@@ -1,0 +1,122 @@
+# Opt-in defense-in-depth for commands that request execution outside the sandbox.
+# These rules do not replace sandboxing, approvals, permissions, or hooks.
+
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Review the destination and refspec before pushing outside the sandbox.",
+    match = ["git push", "git push origin feature/example"],
+    not_match = ["git status", "git pull"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "prompt",
+    justification = "A hard reset can discard local work; prefer a recoverable operation.",
+    match = ["git reset --hard", "git reset --hard HEAD~1"],
+    not_match = ["git reset --soft HEAD~1", "git status"],
+)
+
+prefix_rule(
+    pattern = [["pip", "pip3"], "install"],
+    decision = "prompt",
+    justification = "Package installation changes the environment and may execute third-party code.",
+    match = ["pip install pytest", "pip3 install -r requirements.txt"],
+    not_match = ["pip list", "python -m pip install pytest"],
+)
+
+prefix_rule(
+    pattern = [["python", "py"], "-m", "pip", "install"],
+    decision = "prompt",
+    justification = "Package installation changes the environment and may execute third-party code.",
+    match = ["python -m pip install pytest", "py -m pip install pytest"],
+    not_match = ["python -m pytest"],
+)
+
+prefix_rule(
+    pattern = [["npm", "pnpm", "yarn"], ["install", "add", "i", "ci"]],
+    decision = "prompt",
+    justification = "Package installation changes dependencies and may execute lifecycle scripts.",
+    match = ["npm install lodash", "npm ci", "pnpm add zod", "yarn add react"],
+    not_match = ["npm test", "pnpm lint"],
+)
+
+prefix_rule(
+    pattern = ["uv", ["add", "sync"]],
+    decision = "prompt",
+    justification = "Dependency installation changes the environment and may execute third-party code.",
+    match = ["uv add pytest", "uv sync"],
+    not_match = ["uv run pytest", "uv --version"],
+)
+
+prefix_rule(
+    pattern = ["uv", "pip", "install"],
+    decision = "prompt",
+    justification = "Package installation changes the environment and may execute third-party code.",
+    match = ["uv pip install pytest"],
+    not_match = ["uv pip list"],
+)
+
+prefix_rule(
+    pattern = [["kubectl", "terraform", "docker"], ["apply", "push"]],
+    decision = "prompt",
+    justification = "Deployment commands can change external infrastructure or publish artifacts.",
+    match = ["kubectl apply -f deployment.yml", "terraform apply", "docker push example/app"],
+    not_match = ["kubectl get pods", "terraform plan", "docker images"],
+)
+
+prefix_rule(
+    pattern = [["alembic", "prisma"], ["upgrade", "migrate"]],
+    decision = "prompt",
+    justification = "Database migrations can make durable schema changes.",
+    match = ["alembic upgrade head", "prisma migrate deploy"],
+    not_match = ["alembic history", "prisma validate"],
+)
+
+prefix_rule(
+    pattern = ["npx", "prisma", "migrate"],
+    decision = "prompt",
+    justification = "Database migrations can make durable schema changes.",
+    match = ["npx prisma migrate deploy"],
+    not_match = ["npx prisma validate"],
+)
+
+prefix_rule(
+    pattern = ["python", "manage.py", "migrate"],
+    decision = "prompt",
+    justification = "Database migrations can make durable schema changes.",
+    match = ["python manage.py migrate"],
+    not_match = ["python manage.py check"],
+)
+
+prefix_rule(
+    pattern = ["rm"],
+    decision = "prompt",
+    justification = "Review filesystem deletion targets before running outside the sandbox.",
+    match = ["rm file.txt", "rm -rf ./build"],
+    not_match = ["git status"],
+)
+
+prefix_rule(
+    pattern = ["rm", ["-rf", "-fr"], "/"],
+    decision = "forbidden",
+    justification = "Recursive deletion of the filesystem root is forbidden.",
+    match = ["rm -rf /", "rm -fr /"],
+    not_match = ["rm -rf ./build", "rm file.txt"],
+)
+
+prefix_rule(
+    pattern = [["Remove-Item", "remove-item"]],
+    decision = "prompt",
+    justification = "Review PowerShell deletion targets before running outside the sandbox.",
+    match = ["Remove-Item file.txt", "remove-item file.txt", "Remove-Item -LiteralPath ./build -Recurse"],
+    not_match = ["Get-Item file.txt"],
+)
+
+prefix_rule(
+    pattern = [["Remove-Item", "remove-item"], "-LiteralPath", ["C:\\", "C:/"], "-Recurse", "-Force"],
+    decision = "forbidden",
+    justification = "Recursive deletion of the Windows system drive root is forbidden.",
+    match = ["Remove-Item -LiteralPath C:/ -Recurse -Force"],
+    not_match = ["Remove-Item -LiteralPath .\\build -Recurse -Force"],
+)

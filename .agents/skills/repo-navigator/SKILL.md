@@ -1,28 +1,15 @@
-# Repo Navigator
+---
+name: repo-navigator
+description: Locate the smallest relevant set of code, tests, documentation, and symbols in an unfamiliar repository. Use for codebase orientation, ownership tracing, implementation discovery, or source questions; remain read-only.
+---
 
-## Purpose
-Find the right files without scanning the whole repository.
+# Repository Navigation
 
-## Trigger
-Use when a task requires understanding where code lives, finding related files, or mapping a feature to modules.
+1. Read `docs/agent/INDEX.md` and select only the route relevant to the task.
+2. Check the matching codemap or module card and relevant verified memory.
+3. Use Semble for natural-language discovery when available, then confirm exact paths and symbols with `rg`.
+4. Use Serena only when declarations, references, diagnostics, or refactor-safe symbol information materially helps.
+5. Read full files only after retrieval identifies likely targets.
+6. Return the context read, candidate files, related tests, exact confirmations, confidence, and unresolved risk.
 
-## Workflow
-1. Read `AGENTS.md` or `CLAUDE.md`.
-2. Read `docs/agent/INDEX.md`.
-3. If `.understand-anything/knowledge-graph.json` exists, search it for the task terms.
-4. Read `docs/agent/CODEMAP.md`.
-5. Select relevant module cards from `docs/agent/module-cards/`.
-6. Use `rg` or targeted file reads for discovery.
-7. Return file candidates and confidence.
-
-## Output
-- Relevant docs read
-- Candidate files
-- Related tests
-- Confidence level
-- Suggested next step
-
-## Constraints
-- Do not inspect unrelated directories.
-- Do not make edits.
-- Prefer targeted search over broad reads.
+For knowledge-graph discovery or refresh, read [source-understanding.md](references/source-understanding.md) only when the task needs architecture or dependency relationships. Do not edit files while using this skill.

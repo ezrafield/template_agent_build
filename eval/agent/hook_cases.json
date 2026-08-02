@@ -1,0 +1,29 @@
+[
+  {
+    "id": "healthy_session_is_silent",
+    "event": "session-start",
+    "fixture": "healthy",
+    "payload": {"hook_event_name": "SessionStart", "source": "startup"},
+    "expected_stdout": ""
+  },
+  {
+    "id": "missing_dependency_warns",
+    "event": "session-start",
+    "fixture": "missing-command",
+    "payload": {"hook_event_name": "SessionStart", "source": "startup"},
+    "expected_json_fields": {"continue": true}
+  },
+  {
+    "id": "ordinary_prompt_is_silent",
+    "event": "user-prompt-submit",
+    "payload": {"hook_event_name": "UserPromptSubmit", "prompt": "Please explain the service layer."},
+    "expected_stdout": ""
+  },
+  {
+    "id": "synthetic_secret_is_blocked",
+    "event": "user-prompt-submit",
+    "payload": {"hook_event_name": "UserPromptSubmit", "prompt": "Use sk-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA for this example."},
+    "expected_json_fields": {"decision": "block"},
+    "forbidden_output": "sk-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  }
+]

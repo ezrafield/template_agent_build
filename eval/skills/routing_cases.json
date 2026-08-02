@@ -1,0 +1,114 @@
+[
+  {
+    "id": "navigate_feature",
+    "prompt": "Find where user creation is implemented and which tests cover it.",
+    "expected": ["repo-navigator"],
+    "allowed": [],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "navigate_dependency",
+    "prompt": "Explain which modules depend on the API routes without changing files.",
+    "expected": ["repo-navigator"],
+    "allowed": [],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "implement_fix",
+    "prompt": "Fix the user service bug, add a regression test, and update relevant docs.",
+    "expected": ["safe-implementation"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["code-review"]
+  },
+  {
+    "id": "implement_refactor",
+    "prompt": "Refactor this parser without changing its public behavior and verify it.",
+    "expected": ["safe-implementation"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["architecture-decision"]
+  },
+  {
+    "id": "debug_pytest",
+    "prompt": "Pytest fails with this assertion; reproduce the smallest case and fix it.",
+    "expected": ["test-debug-loop"],
+    "allowed": ["repo-navigator", "safe-implementation"],
+    "forbidden": ["code-review"]
+  },
+  {
+    "id": "debug_runtime",
+    "prompt": "The development server crashes at startup. Isolate the failure before patching.",
+    "expected": ["test-debug-loop"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["architecture-decision"]
+  },
+  {
+    "id": "review_diff",
+    "prompt": "Review this branch for correctness and security, but do not modify it.",
+    "expected": ["code-review"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "review_merge",
+    "prompt": "Assess whether this pull request is ready to merge and identify missing tests.",
+    "expected": ["code-review"],
+    "allowed": [],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "choose_database",
+    "prompt": "Compare SQLite and Postgres for this deployment and record the decision.",
+    "expected": ["architecture-decision"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "choose_agent_pattern",
+    "prompt": "Decide whether this workflow needs one agent or multiple handoff agents.",
+    "expected": ["architecture-decision"],
+    "allowed": [],
+    "forbidden": ["task-handoff"]
+  },
+  {
+    "id": "setup_after_install",
+    "prompt": "I installed the agent kit; detect the stack, generate context, and validate setup.",
+    "expected": ["agent-setup"],
+    "allowed": [],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "audit_agent_setup",
+    "prompt": "Audit whether this repository's agent kit is installed and discoverable.",
+    "expected": ["agent-setup"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["code-review"]
+  },
+  {
+    "id": "handoff_pause",
+    "prompt": "We need to pause now. Capture everything needed for another session to continue.",
+    "expected": ["task-handoff"],
+    "allowed": [],
+    "forbidden": ["memory-maintenance"]
+  },
+  {
+    "id": "handoff_agent",
+    "prompt": "Prepare a concise handoff for another engineer with verification and next steps.",
+    "expected": ["task-handoff"],
+    "allowed": [],
+    "forbidden": ["code-review"]
+  },
+  {
+    "id": "promote_memory",
+    "prompt": "Review this task note and promote only durable verified lessons into project memory.",
+    "expected": ["memory-maintenance"],
+    "allowed": [],
+    "forbidden": ["task-handoff"]
+  },
+  {
+    "id": "audit_memory",
+    "prompt": "Audit semantic memory for stale facts and broken source links.",
+    "expected": ["memory-maintenance"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["safe-implementation"]
+  }
+]

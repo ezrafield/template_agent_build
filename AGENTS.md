@@ -1,98 +1,62 @@
 # AGENTS.md
 
 ## Project Purpose
-This repository is a sample agent-native project template that demonstrates progressive context loading for Codex, Claude Code, and similar coding agents.
+
+This repository is an agent-native project template for Codex, Claude Code, and similar coding agents. It demonstrates progressive context loading, discoverable skills, deterministic validation, and lightweight project memory.
+
+## Instruction Hierarchy
+
+- Read this file before non-trivial work, then route through `docs/agent/INDEX.md`.
+- Codex loads at most one instruction file per directory from the repository root to the working directory. At one level, `AGENTS.override.md` is preferred over `AGENTS.md`; ancestors remain active.
+- Use a root `AGENTS.override.md` only as a temporary local replacement. Use nested instructions for durable directory-specific guidance.
+- Project instructions and skills do not override system, managed, safety, or explicit user constraints.
 
 ## Default Workflow
-1. Understand the task.
-2. Read `docs/agent/INDEX.md`.
-3. Check `.agent/memory/index.json` for relevant long-term memory, then verify it against current files.
-4. Read only the relevant module card under `docs/agent/module-cards/`.
-5. Make the smallest safe change.
-6. Add or update tests when behavior changes.
-7. Run targeted tests before broad tests.
-8. Summarize changed files, commands run, and remaining risks.
+
+1. Understand the task and keep its scope explicit.
+2. Read `docs/agent/INDEX.md` and only the context it routes to.
+3. Check `.agent/memory/index.json` for relevant guidance, then verify it against current files.
+4. Use targeted retrieval before full-file reads: semantic search when useful, `rg` for exact confirmation, and symbol tooling only when references or safe refactors require it.
+5. Before editing, identify the selected files, why they matter, and the main uncertainty or risk.
+6. Make the smallest safe change and update tests or docs when behavior changes.
+7. Run targeted checks before broader checks.
+8. Report changed files, commands run, and remaining risks.
 
 ## Context Rules
+
 - Do not scan the whole repository unless the task requires it.
-- Prefer `rg`, targeted file reads, and module cards.
-- Do not load large docs unless referenced by `docs/agent/INDEX.md`.
-- Keep changes scoped to the user request.
+- Prefer module cards, targeted reads, and deterministic scripts over broad context loading.
+- Treat memory and generated knowledge graphs as navigation aids, not source of truth.
+- Keep command output compact when possible, but rerun the smallest failing command in raw mode when details are unclear.
+- Do not hide failures, exit codes, stack traces, or actionable diagnostics.
 
-## Context Retrieval Policy
-For non-trivial code tasks, do not scan the whole repository.
+## Safety and Code Rules
 
-Use this order:
-1. Read `docs/agent/INDEX.md`.
-2. Read the relevant module card or `docs/agent/CODEMAP.md`.
-3. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
-4. Verify memory against current code, tests, and docs before relying on it.
-5. Use Semble for natural-language code search:
-   - `semble search "<task>" . --content code`
-   - `semble search "<task>" . --content all` when docs/config may matter
-   - `make code-search QUERY="<task>" CONTENT=all` when using the project-local tool wrapper
-6. Use `rg` for exact symbol/string confirmation.
-7. Use Serena when symbol references, declarations, implementations, diagnostics, or safe refactors are needed.
-8. Read full files only after retrieval identifies likely relevant targets.
-9. Before editing, summarize:
-   - selected files
-   - why they are relevant
-   - uncertainty/risk
-10. After editing, run targeted tests first.
-
-## Commands
-- Install: `make install`
-- Agent tools: `make agent-tools-install`, `make agent-tools-check`
-- Run app: `make dev`
-- Unit tests: `make test-unit`
-- Integration tests: `make test-integration`
-- Lint: `make lint`
-- Typecheck: `make typecheck`
-- Docs map: `make docs-map`
-- Agent setup: `make agent-setup`
-- Agent audits: `make validate-agent-docs`, `make check-context-staleness`, `make audit-module-cards`, `make audit-memory`
-- Source understanding: `make code-search QUERY="..." CONTENT=all`, `make repomix`, `make ast-grep PATTERN="..." LANG=python`
-- Compact output helpers: `make git-status`, `make git-diff`, `make test-unit-compact`, `make lint-compact`, `make typecheck-compact`
-
-## Long-Term Memory
-Use `.agent/memory/` as guidance, not truth.
-
-- Semantic memory stores project facts, conventions, and decisions.
-- Procedural memory stores reusable workflows.
-- Episodic memory stays in `.agent/tasks/`.
-- Promote memory manually only after reviewing candidates for quality, staleness, and sensitive data.
-
-## Command Output Rules
-For noisy terminal commands, prefer compressed output.
-
-Use RTK when available:
-- `make git-status`
-- `make git-diff`
-- `rtk git status`
-- `rtk git diff`
-- `rtk grep`
-- `rtk find`
-- `rtk pytest`
-- `rtk cargo test`
-- `rtk npm test`
-- `rtk tsc`
-- `rtk eslint`
-
-If compressed output is incomplete or suspicious:
-1. Rerun the specific command in raw mode.
-2. Inspect only the relevant failing section.
-3. Mention the rerun in the final command summary.
-
-Do not hide failures. Test failures, stack traces, exit codes, and actionable errors must remain visible.
-
-## Code Rules
-- Follow existing patterns before introducing new abstractions.
-- Do not add new dependencies without explicit justification.
-- Do not change public APIs without updating docs or specs.
+- Preserve user-owned changes and keep work scoped to the request.
+- Follow existing patterns before introducing abstractions or dependencies.
+- Do not change public APIs without updating relevant docs or specifications.
 - Do not modify generated files manually.
+- Do not expose secrets or weaken security checks without explicit authorization.
+- Prefer recoverable operations and targeted tests before broad suites.
 
-## Definition Of Done
+## Response Style
+
+- Lead with the result, decision, or current blocker.
+- Keep progress updates concise and concrete.
+- State material assumptions and uncertainty explicitly.
+- For code changes, report files changed, checks run, and remaining risks.
+
+## Definition of Done
+
 - Relevant tests pass.
-- Lint and typecheck pass when applicable.
-- Docs are updated if behavior changes.
-- Final response includes files changed, commands run, and risks.
+- Lint and type checks pass when applicable.
+- Agent assets pass `make validate-agent-assets` when they change.
+- Documentation and verified memory are updated when durable behavior changes.
+- The final response includes changed files, commands run, and risks.
+
+## References
+
+- Context routing: `docs/agent/INDEX.md`
+- Commands and tools: `docs/agent/COMMANDS.md`, `docs/agent/TOOLS.md`
+- Codex customization: `docs/agent/CODEX_CUSTOMIZATION.md`
+- Skills and memory: `docs/agent/AGENTS_AND_SKILLS.md`, `docs/agent/MEMORY_POLICY.md`

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "read_only_git_unmatched",
+    "command": ["git", "status"],
+    "expected_decision": null,
+    "expected_match_count": 0
+  },
+  {
+    "id": "git_push_prompts",
+    "command": ["git", "push", "origin", "feature/example"],
+    "expected_decision": "prompt",
+    "expected_match_count": 1
+  },
+  {
+    "id": "python_package_install_prompts",
+    "command": ["python", "-m", "pip", "install", "pytest"],
+    "expected_decision": "prompt",
+    "expected_match_count": 1
+  },
+  {
+    "id": "node_clean_install_prompts",
+    "command": ["npm", "ci"],
+    "expected_decision": "prompt",
+    "expected_match_count": 1
+  },
+  {
+    "id": "uv_dependency_add_prompts",
+    "command": ["uv", "add", "pytest"],
+    "expected_decision": "prompt",
+    "expected_match_count": 1
+  },
+  {
+    "id": "hard_reset_prompts",
+    "command": ["git", "reset", "--hard", "HEAD~1"],
+    "expected_decision": "prompt",
+    "expected_match_count": 1
+  },
+  {
+    "id": "migration_prompts",
+    "command": ["alembic", "upgrade", "head"],
+    "expected_decision": "prompt",
+    "expected_match_count": 1
+  },
+  {
+    "id": "root_delete_forbidden_wins",
+    "command": ["rm", "-rf", "/"],
+    "expected_decision": "forbidden",
+    "expected_match_count": 2
+  },
+  {
+    "id": "windows_root_delete_forbidden_wins",
+    "command": ["Remove-Item", "-LiteralPath", "C:/", "-Recurse", "-Force"],
+    "expected_decision": "forbidden",
+    "expected_match_count": 2
+  }
+]

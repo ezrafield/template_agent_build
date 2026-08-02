@@ -51,10 +51,11 @@ Read:
 ## For Agent, Skill, Tool, Or MCP Changes
 Read:
 1. `docs/agent/AGENTS_AND_SKILLS.md`
-2. `docs/agent/TOOLS.md`
-3. `docs/agent/MCPS.md`
-4. `docs/agent/COMMAND_OUTPUT_POLICY.md` when command execution or output volume is affected
-5. Relevant files under `.agents/skills/`, `.claude/agents/`, `.mcp/`, or `scripts/`
+2. `docs/agent/CODEX_CUSTOMIZATION.md` for instructions, skills, hooks, rules, trust, or evals
+3. `docs/agent/TOOLS.md`
+4. `docs/agent/MCPS.md`
+5. `docs/agent/COMMAND_OUTPUT_POLICY.md` when command execution or output volume is affected
+6. Relevant files under `.agents/skills/`, `.codex/templates/`, `.claude/agents/`, `.mcp/`, or `scripts/`
 
 ## For Long-Term Memory Changes
 Read:
@@ -70,7 +71,8 @@ Read:
 2. `docs/agent/TOOLS.md`
 3. `docs/agent/COMMAND_OUTPUT_POLICY.md`
 4. `.agents/skills/agent-setup/SKILL.md`
-5. Relevant installer, setup, audit, or hook files under `scripts/`, `.agent/`, or `.claude/hooks/`
+5. `docs/agent/CODEX_CUSTOMIZATION.md`
+6. Relevant installer, setup, audit, or hook files under `scripts/`, `.agent/`, `.codex/templates/`, or `.claude/hooks/`
 
 ## For Source Understanding Or Code Search
 Read:

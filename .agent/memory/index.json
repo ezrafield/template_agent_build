@@ -9,7 +9,7 @@
       "summary": "Stable facts about this agent-native template and its context-loading workflow.",
       "keywords": ["template", "project", "context", "workflow"],
       "confidence": "high",
-      "last_verified": "2026-06-19",
+      "last_verified": "2026-08-02",
       "source_task": ".agent/tasks/README.md"
     },
     {
@@ -20,7 +20,7 @@
       "summary": "Durable conventions for small safe changes, targeted context loading, and verification.",
       "keywords": ["conventions", "scope", "tests", "docs"],
       "confidence": "high",
-      "last_verified": "2026-06-19",
+      "last_verified": "2026-08-02",
       "source_task": ".agent/tasks/README.md"
     },
     {
@@ -31,7 +31,7 @@
       "summary": "Durable decisions about keeping the template lightweight and dependency-free.",
       "keywords": ["decisions", "dependencies", "memory", "template"],
       "confidence": "high",
-      "last_verified": "2026-06-19",
+      "last_verified": "2026-08-02",
       "source_task": ".agent/tasks/README.md"
     },
     {

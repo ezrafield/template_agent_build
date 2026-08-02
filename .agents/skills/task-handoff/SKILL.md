@@ -1,25 +1,14 @@
+---
+name: task-handoff
+description: Capture concise, reusable state for a multi-step task that is pausing or moving to another agent or session. Use when the user requests a handoff, work must pause, or unresolved state would otherwise be lost.
+---
+
 # Task Handoff
 
-## Purpose
-Summarize long work into reusable state.
+1. Create or update the task note under `.agent/tasks/`.
+2. Record the goal, user request, assumptions, context read, files inspected or changed, and commands run.
+3. Separate completed work from unresolved work and include verification status.
+4. Record blockers, risks, and the next concrete action.
+5. Keep temporary task state out of semantic and procedural memory until it is reviewed for promotion.
 
-## Trigger
-Use at the end of multi-step work, before pausing, before handing to another agent, or when context is getting long.
-
-## Output
-- Goal
-- User request
-- Assumptions
-- Docs read
-- Files inspected
-- Files changed
-- Commands run
-- Verification status
-- Unresolved risks
-- Next recommended action
-
-## Workflow
-1. Create or update a task note in `.agent/tasks/`.
-2. Keep the note factual and concise.
-3. Separate durable project knowledge from temporary task state.
-4. Reference docs and files by path.
+Use factual paths and commands. Keep the handoff concise enough for another agent to resume without rereading the full conversation.

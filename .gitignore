@@ -23,6 +23,9 @@ tools/agent/.downloads/
 .agent/memory/candidates/*.md
 !.agent/memory/candidates/README.md
 .codex-log/
+/AGENTS.override.md
+/.codex/hooks.json
+/.codex/rules/default.rules
 .claude/settings.local.json
 CLAUDE.local.md
 

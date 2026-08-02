@@ -9,10 +9,14 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `scripts/generate_codemap.py` | Refresh `docs/agent/CODEMAP.md` from source folders. |
 | `scripts/agent_setup.py` | Detect stack and commands, refresh agent context, and run validation. |
 | `scripts/agentkit_installer.py` | Install or update agent-kit files from `agentkit-manifest.json`. |
+| `scripts/validate_agent_assets.py` | Validate instruction chains, byte budgets, skills, manifest coverage, and guardrail templates. |
+| `scripts/enable_codex_guardrails.py` | Generate ignored machine-local Codex hooks and command rules from reviewed templates. |
+| `scripts/run_agent_hook.py` | Handle the SessionStart, UserPromptSubmit, and Stop guardrails without dependencies. |
+| `scripts/check_codex_runtime.py` | Verify Codex hook availability and evaluate command rules with `execpolicy`. |
 | `scripts/summarize_changed_files.py` | Summarize changed files for handoff and review. |
 | `scripts/update_module_cards.py` | Create missing module cards from source folders. |
 | `scripts/run_targeted_tests.py` | Run a focused test command or pick a small default. |
-| `scripts/validate_agent_docs.py` | Validate required agent docs and skill templates. |
+| `scripts/validate_agent_docs.py` | Compatibility wrapper for unified agent-asset validation. |
 | `scripts/detect_large_context_docs.py` | Warn when auto-loaded docs become too large. |
 | `scripts/detect_large_agent_files.py` | Warn when agent entrypoints, skills, or subagents become too large. |
 | `scripts/check_context_staleness.py` | Warn when generated agent context may be older than source files. |
@@ -28,6 +32,8 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `scripts/bootstrap_agent_tools.py` | Recreate project-local Semble, Serena, Repomix, ast-grep, and RTK tools. |
 | `scripts/run_agent_tool.py` | Run project-local tools without requiring global PATH setup. |
 | `eval/retrieval/run_retrieval_eval.py` | Check whether Semble searches return expected context paths. |
+| `eval/agent/run_hook_eval.py` | Exercise deterministic hook inputs, outputs, and non-leakage behavior. |
+| `eval/skills/run_skill_routing_eval.py` | Validate routing fixtures or run authenticated non-gating Codex routing measurements. |
 
 ## Command Output
 
@@ -79,6 +85,11 @@ make agent-tools-check
 make update-module-cards
 make targeted-tests
 make validate-agent-docs
+make validate-agent-assets
+make agent-kit-check
+make codex-guardrails-enable
+make codex-runtime-check
+make skill-routing-eval
 make detect-large-context-docs
 make detect-large-agent-files
 make check-context-staleness
@@ -108,6 +119,8 @@ make retrieval-eval
 ## Tool Principles
 
 - Prefer scripts for deterministic checks.
+- Keep active project hooks and rules opt-in, machine-local, reviewed, and trusted.
+- Do not use command `allow` rules to bypass the normal sandbox for routine tests or lint.
 - Prefer Semble + `rg` + CODEMAP/module cards for normal retrieval.
 - Keep Serena optional for language-server backed symbol work.
 - Use Repomix as an export tool, not as the normal daily retrieval workflow.

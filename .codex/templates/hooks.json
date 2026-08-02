@@ -1,0 +1,45 @@
+{
+  "description": "Opt-in Codex guardrails for the agent-native template.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{SESSION_START_COMMAND}}",
+            "commandWindows": "{{SESSION_START_COMMAND_WINDOWS}}",
+            "timeout": 5,
+            "statusMessage": "Checking agent kit dependencies"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{USER_PROMPT_COMMAND}}",
+            "commandWindows": "{{USER_PROMPT_COMMAND_WINDOWS}}",
+            "timeout": 3,
+            "statusMessage": "Checking prompt for exposed secrets"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{STOP_COMMAND}}",
+            "commandWindows": "{{STOP_COMMAND_WINDOWS}}",
+            "timeout": 30,
+            "statusMessage": "Validating changed agent assets"
+          }
+        ]
+      }
+    ]
+  }
+}

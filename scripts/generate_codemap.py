@@ -123,7 +123,11 @@ def risk_notes(module_name: str, summaries: list[FileSummary]) -> list[str]:
 
 
 def main() -> None:
-    source_dirs = [path for path in (ROOT / "src").iterdir() if path.is_dir()]
+    source_dirs = [
+        path
+        for path in (ROOT / "src").iterdir()
+        if path.is_dir() and path.name != "__pycache__" and not path.name.startswith(".")
+    ]
     lines = [
         "# Code Map",
         "",
@@ -134,7 +138,7 @@ def main() -> None:
     ]
 
     for directory in sorted(source_dirs):
-        paths = sorted(directory.rglob("*.py"))
+        paths = sorted(path for path in directory.rglob("*.py") if "__pycache__" not in path.parts)
         summaries = [parse_python_file(path) for path in paths]
         name = directory.name
         purpose = PURPOSES.get(name, "Project module. Replace this line with project-specific ownership notes.")

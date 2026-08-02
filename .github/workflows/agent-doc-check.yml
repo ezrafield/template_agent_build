@@ -6,11 +6,18 @@ on:
     branches: [main]
 
 jobs:
-  docs:
+  agent-assets:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python scripts/validate_docs.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --global @openai/codex@0.146.0
+      - run: python scripts/validate_agent_assets.py
+      - run: python eval/agent/run_hook_eval.py
+      - run: python eval/skills/run_skill_routing_eval.py --validate-only
+      - run: python scripts/check_codex_runtime.py

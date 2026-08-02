@@ -1,26 +1,16 @@
+---
+name: test-debug-loop
+description: Reproduce, isolate, fix, and re-test a failing test or runtime error. Use when a command, CI check, or application path is failing; do not start with broad suites when a focused reproduction exists.
+---
+
 # Test Debug Loop
 
-## Purpose
-Handle failing tests efficiently.
+1. Run the smallest failing test or deterministic reproduction.
+2. Preserve the complete actionable error and identify the first relevant failure.
+3. Form one root-cause hypothesis and verify it against current code.
+4. Apply the smallest correction that addresses that cause.
+5. Re-run the exact reproduction before expanding test scope.
+6. Run adjacent regression checks after the focused check passes.
+7. Report the failing command, cause, patch, verification, and any remaining uncertainty.
 
-## Trigger
-Use when tests fail, a runtime error appears, or the user asks to debug a failure.
-
-## Workflow
-1. Run the smallest failing test or reproduction.
-2. Read the failure message.
-3. Identify the probable root cause.
-4. Patch minimally.
-5. Re-run the same test.
-6. Expand scope only after the focused check passes.
-
-## Output
-- Failing command
-- Failure summary
-- Root-cause hypothesis
-- Patch summary
-- Verification command
-
-## Constraints
-- Do not start with broad test suites unless no smaller check exists.
-- Keep each loop focused on one failure.
+Keep each loop focused on one failure. Do not hide stack traces or replace root-cause analysis with repeated broad retries.
