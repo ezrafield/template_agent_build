@@ -15,8 +15,20 @@ CHAIN_WARN_BYTES = 16 * 1024
 CHAIN_MAX_BYTES = 20 * 1024
 SKILL_MAX_BYTES = 4 * 1024
 SKILL_DESCRIPTION_MAX_CHARS = 300
-EXPECTED_SKILL_COUNT = 8
+EXPECTED_SKILL_COUNT = 9
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+PLAN_RECORD_NAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
+PLAN_REQUIRED_HEADINGS = {
+    "Metadata",
+    "Goal",
+    "Why This Strategy",
+    "Scope",
+    "Success Signals",
+    "Risks And Assumptions",
+    "Outcome And Evidence",
+    "Reflection",
+}
+PLAN_LIFECYCLE_DIRECTORIES = ("active", "backlog", "completed", "reports")
 IGNORED_DIRECTORY_NAMES = {
     ".git",
     ".agentkit",
@@ -46,6 +58,7 @@ REQUIRED_FILES = {
     "docs/agent/MEMORY_PROMOTION_RULES.md",
     "docs/agent/SOURCE_UNDERSTANDING.md",
     ".agent/memory/index.json",
+    ".agent/plans/template.md",
     ".codex/templates/hooks.json",
     ".codex/templates/default.rules",
     "scripts/agentkit_installer.py",
@@ -405,12 +418,58 @@ def validate_required_files(root: Path, report: ValidationReport) -> None:
             report.error(f"Missing required agent asset: {required}.")
 
 
+def markdown_h2_headings(text: str) -> set[str]:
+    return {
+        match.group(1).strip()
+        for match in re.finditer(r"^##\s+(.+?)\s*$", text, flags=re.MULTILINE)
+    }
+
+
+def validate_plan_system(root: Path, report: ValidationReport) -> None:
+    plan_root = root / ".agent" / "plans"
+    for name in PLAN_LIFECYCLE_DIRECTORIES:
+        if not (plan_root / name).is_dir():
+            report.error(f"Missing plan lifecycle directory: .agent/plans/{name}.")
+
+    template = plan_root / "template.md"
+    paths = [template] if template.is_file() else []
+    for lifecycle in ("active", "backlog", "completed"):
+        directory = plan_root / lifecycle
+        if directory.is_dir():
+            paths.extend(sorted(directory.glob("*.md")))
+
+    for path in paths:
+        rel = relative(path, root)
+        missing = sorted(
+            PLAN_REQUIRED_HEADINGS - markdown_h2_headings(path.read_text(encoding="utf-8"))
+        )
+        for heading in missing:
+            report.error(f"{rel} is missing required heading ## {heading}.")
+        if path != template and not PLAN_RECORD_NAME_RE.fullmatch(path.name):
+            report.error(f"{rel} must use YYYY-MM-DD-short-name.md.")
+
+    instruction_markers = {
+        "AGENTS.md": ("$plan-evolution", ".agent/plans/"),
+        "CLAUDE.md": (".agent/plans/",),
+    }
+    for filename, markers in instruction_markers.items():
+        path = root / filename
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in text:
+                report.error(f"{filename} must include the plan policy marker {marker}.")
+    report.detail(f"Plan records validated: {max(0, len(paths) - 1)}.")
+
+
 def validate(root: Path) -> ValidationReport:
     root = root.resolve()
     report = ValidationReport()
     validate_required_files(root, report)
     validate_instructions(root, report)
     validate_manifest_and_skills(root, report)
+    validate_plan_system(root, report)
     validate_guardrail_templates(root, report)
     return report
 

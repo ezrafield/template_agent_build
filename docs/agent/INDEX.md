@@ -44,9 +44,11 @@ Read:
 
 ## For Planning Or Product Questions
 Read:
-1. `docs/product/PRD.md`
-2. `docs/product/REQUIREMENTS.md`
-3. `docs/product/USER_FLOWS.md`
+1. `.agents/skills/plan-evolution/SKILL.md`
+2. Existing related records under `.agent/plans/`
+3. `docs/product/PRD.md`
+4. `docs/product/REQUIREMENTS.md`
+5. `docs/product/USER_FLOWS.md`
 
 ## For Agent, Skill, Tool, Or MCP Changes
 Read:

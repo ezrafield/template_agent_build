@@ -110,5 +110,19 @@
     "expected": ["memory-maintenance"],
     "allowed": ["repo-navigator"],
     "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "record_product_plan",
+    "prompt": "Create a product roadmap and preserve the assumptions so we can evaluate the strategy after delivery.",
+    "expected": ["plan-evolution"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "upgrade_agent_strategy",
+    "prompt": "Upgrade this agent workflow to the next version, implement it, and record whether the new human-AI strategy works.",
+    "expected": ["plan-evolution", "safe-implementation"],
+    "allowed": ["architecture-decision", "repo-navigator"],
+    "forbidden": ["code-review"]
   }
 ]

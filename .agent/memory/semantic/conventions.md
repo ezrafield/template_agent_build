@@ -3,8 +3,8 @@
 Type: semantic
 Scope: project
 Confidence: high
-Last verified: 2026-08-02
-Source task: .agent/tasks/README.md
+Last verified: 2026-08-07
+Source task: .agent/tasks/2026-08-07-plan-evolution-governance.md
 
 ## When to use
 
@@ -19,6 +19,9 @@ Use this memory before implementing non-trivial template or code changes.
 - Keep long-term memory concise, reusable, and free of secrets or private data.
 - Keep root instructions under the internal byte target and validate agent assets with `make validate-agent-assets`.
 - Treat hooks and rules as reviewed defense-in-depth; do not add broad command allow rules for routine checks.
+- Before executing a plan or material upgrade, create or update its durable
+  record under `.agent/plans/` with strategy, success signals, evidence, and
+  user/AI learning. Chat plans are transient coordination only.
 
 ## Related files
 
@@ -27,6 +30,8 @@ Use this memory before implementing non-trivial template or code changes.
 - `docs/agent/COMMAND_OUTPUT_POLICY.md`
 - `docs/agent/MEMORY_POLICY.md`
 - `docs/agent/CODEX_CUSTOMIZATION.md`
+- `.agents/skills/plan-evolution/SKILL.md`
+- `.agent/plans/template.md`
 
 ## Staleness triggers
 
@@ -34,3 +39,4 @@ Use this memory before implementing non-trivial template or code changes.
 - Command output policy changes.
 - New required tools replace the existing default workflow.
 - Instruction budgets, skill packaging, or guardrail policy changes.
+- Plan-record lifecycle or human-AI learning fields change.

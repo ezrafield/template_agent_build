@@ -17,11 +17,11 @@
       "type": "semantic",
       "scope": "project",
       "path": ".agent/memory/semantic/conventions.md",
-      "summary": "Durable conventions for small safe changes, targeted context loading, and verification.",
-      "keywords": ["conventions", "scope", "tests", "docs"],
+      "summary": "Durable conventions for safe changes, plan evolution records, targeted context, and verification.",
+      "keywords": ["conventions", "scope", "plans", "upgrades", "learning", "tests", "docs"],
       "confidence": "high",
-      "last_verified": "2026-08-02",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-08-07",
+      "source_task": ".agent/tasks/2026-08-07-plan-evolution-governance.md"
     },
     {
       "id": "decisions",

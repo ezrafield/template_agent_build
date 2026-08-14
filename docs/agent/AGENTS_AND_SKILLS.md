@@ -17,10 +17,20 @@ concise workflow body, and Codex UI metadata under `agents/openai.yaml`.
 | `agent-setup` | Bootstrap or audit the installed agent kit. |
 | `task-handoff` | Capture concise continuation state for multi-step work. |
 | `memory-maintenance` | Promote, validate, or retire semantic and procedural memory. |
+| `plan-evolution` | Record plans and upgrades, then compare strategy with outcome evidence and learning. |
 
 The manifest is the source of truth for required and optional command
 dependencies. Skill versions inherit the agent-kit version; do not add a
 parallel skill lockfile for repository-owned skills.
+
+## Plan Evolution Records
+
+`.agent/plans/` is the durable source for plans and upgrades. Start from
+`template.md`, keep work in `active/` or `backlog/`, move closed records to
+`completed/`, and reserve `reports/` for comparisons across records. Each
+material version upgrade gets its own linked file. Records capture explicit
+strategy hypotheses, observable evidence, and learning for both the user and AI
+workflow without storing secrets or hidden chain-of-thought.
 
 ## Progressive Disclosure
 

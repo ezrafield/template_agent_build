@@ -8,8 +8,15 @@ For every non-trivial task:
 2. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
 3. Verify memory against current code, tests, and docs before relying on it.
 4. Read the relevant module card.
-5. Create or update a task note in `.agent/tasks/` if the task has more than one step.
-6. Use `.agent/plans/template.md` for complex or multi-phase work.
+5. Before executing any plan, roadmap, strategy change, migration, or version upgrade, create or update a Markdown record under `.agent/plans/` from `.agent/plans/template.md`.
+6. Create or update a task note in `.agent/tasks/` if the task has more than one step.
+
+## Plan Evolution
+
+- Treat chat plans as transient and the plan file as the durable source of truth.
+- Keep the record current through execution, then move it from `active/` to `completed/`.
+- Capture the strategy hypothesis, success signals, decisions, observed evidence, and separate learning for the user and AI process.
+- Use one linked record per material version upgrade. Do not store secrets, private data, or hidden chain-of-thought.
 
 ## Token-Saving Behavior
 - Do not explore unrelated directories.

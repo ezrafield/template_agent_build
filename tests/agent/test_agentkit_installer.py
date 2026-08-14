@@ -63,14 +63,14 @@ def test_update_backs_up_and_prunes_only_recorded_obsolete_files(tmp_path: Path)
     assert backups[0].read_text(encoding="utf-8") == "old managed content\n"
 
 
-def test_real_manifest_fresh_install_has_eight_skills_and_no_active_guardrails(tmp_path: Path) -> None:
+def test_real_manifest_fresh_install_has_nine_skills_and_no_active_guardrails(tmp_path: Path) -> None:
     source = Path(__file__).resolve().parents[2]
     target = tmp_path / "installed-project"
 
     install("install", source, target)
 
     skills = list((target / ".agents" / "skills").glob("*/SKILL.md"))
-    assert len(skills) == 8
+    assert len(skills) == 9
     assert not (target / ".codex" / "hooks.json").exists()
     assert not (target / ".codex" / "rules" / "default.rules").exists()
     assert not list(target.rglob("__pycache__"))

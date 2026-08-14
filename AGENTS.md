@@ -11,6 +11,12 @@ This repository is an agent-native project template for Codex, Claude Code, and 
 - Use a root `AGENTS.override.md` only as a temporary local replacement. Use nested instructions for durable directory-specific guidance.
 - Project instructions and skills do not override system, managed, safety, or explicit user constraints.
 
+## Plan Evolution Rule
+
+- Before executing any explicit plan, roadmap, strategy change, migration, or version upgrade—or whenever work is organized as a multi-step plan—use `$plan-evolution` and create or update its Markdown record under `.agent/plans/`.
+- Treat chat or tool plans as transient. Keep the file current with the goal, strategy hypothesis, success signals, decisions, outcome evidence, and separate learning for the user and AI process; move closed records to `completed/`.
+- Create one linked record for every material version upgrade. Read-only answers and unplanned one-step actions are exempt. Store concise rationale, never secrets, private data, or hidden chain-of-thought.
+
 ## Default Workflow
 
 1. Understand the task and keep its scope explicit.

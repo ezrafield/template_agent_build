@@ -28,6 +28,11 @@ Codex discovers repository skills under `.agents/skills/`. Every skill must have
 matching UI metadata. The manifest records command dependencies and the unified
 validator checks discovery, size, naming, and catalog coverage.
 
+`plan-evolution` is a core governance skill. Any explicit plan, multi-step
+execution plan, or material upgrade must have a durable Markdown record under
+`.agent/plans/`. The file carries the strategy hypothesis through observed
+evidence and retrospective learning; in-chat plans are not the audit record.
+
 ## Opt-In Hooks and Rules
 
 Run:
@@ -62,8 +67,8 @@ permissions, approvals, and hooks.
 
 ## Evaluation
 
-- `make validate-agent-assets`: deterministic instruction, skill, manifest, and
-  template checks.
+- `make validate-agent-assets`: deterministic instruction, skill, manifest,
+  plan-system, and guardrail-template checks.
 - `make codex-runtime-check`: Codex feature and `execpolicy` fixtures; no API
   authentication required.
 - `python eval/agent/run_hook_eval.py`: deterministic hook behavior fixtures.

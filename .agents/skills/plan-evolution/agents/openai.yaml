@@ -1,0 +1,6 @@
+interface:
+  display_name: "Plan Evolution"
+  short_description: "Record plans, upgrades, evidence, and learning"
+  default_prompt: "Use $plan-evolution to create and maintain a durable record for this plan or upgrade."
+policy:
+  allow_implicit_invocation: true

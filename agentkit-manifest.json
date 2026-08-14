@@ -45,6 +45,14 @@
       "optional_commands": ["make"]
     },
     {
+      "name": "plan-evolution",
+      "path": ".agents/skills/plan-evolution",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": [],
+      "optional_commands": []
+    },
+    {
       "name": "repo-navigator",
       "path": ".agents/skills/repo-navigator",
       "required": true,

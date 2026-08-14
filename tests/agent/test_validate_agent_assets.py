@@ -5,6 +5,7 @@ from scripts.validate_agent_assets import (
     discover_instruction_chain,
     parse_skill_frontmatter,
     validate_instructions,
+    validate_plan_system,
 )
 
 
@@ -60,3 +61,36 @@ def test_parse_skill_frontmatter_accepts_only_simple_metadata(tmp_path: Path) ->
 
     assert metadata == {"name": "example-skill", "description": "Use for an example workflow."}
     assert "# Workflow" in body
+
+
+def test_plan_system_reports_learning_section_missing_from_record(tmp_path: Path) -> None:
+    headings = [
+        "Metadata",
+        "Goal",
+        "Why This Strategy",
+        "Scope",
+        "Success Signals",
+        "Risks And Assumptions",
+        "Outcome And Evidence",
+        "Reflection",
+    ]
+    complete = "# Plan\n\n" + "\n\n".join(f"## {heading}" for heading in headings) + "\n"
+    incomplete = complete.replace("\n\n## Reflection\n", "\n")
+    for name in ("active", "backlog", "completed", "reports"):
+        (tmp_path / ".agent" / "plans" / name).mkdir(parents=True, exist_ok=True)
+    write(tmp_path / ".agent" / "plans" / "template.md", complete)
+    write(
+        tmp_path / ".agent" / "plans" / "active" / "2026-08-07-example.md",
+        incomplete,
+    )
+    write(tmp_path / "AGENTS.md", "$plan-evolution .agent/plans/\n")
+    write(tmp_path / "CLAUDE.md", ".agent/plans/\n")
+    report = ValidationReport()
+
+    validate_plan_system(tmp_path, report)
+
+    assert any(
+        ".agent/plans/active/2026-08-07-example.md is missing required heading ## Reflection."
+        in error
+        for error in report.errors
+    )
