@@ -1,4 +1,4 @@
-"""Compatibility wrapper for the v0.3 unified agent-asset validator."""
+"""Compatibility wrapper for the v0.4 unified agent-asset validator."""
 
 from validate_agent_assets import main
 

@@ -4,10 +4,10 @@ This repository is a practical template for projects that collaborate well with
 coding agents such as Codex, Claude Code, and similar tools.
 
 The core idea is progressive context loading: keep auto-loaded instructions
-short, route agents through a small index, and load richer docs only when the
-task needs them. Version 0.3.0 adds eight discoverable Codex skills, unified
-agent-asset validation, upgrade-safe installer ownership, and opt-in local
-hooks and command rules.
+short, route agents through a small index, and compile richer task context only
+when the work needs it. Version 0.4.0 adds an inspectable Markdown task-context
+compiler, ten discoverable Codex skills, unified agent-asset validation,
+upgrade-safe installer ownership, and opt-in local hooks and command rules.
 
 The memory layer is inspired by PlugMem's semantic, procedural, and episodic
 taxonomy, but stays dependency-free: Markdown cards, a JSON index, and small
@@ -19,13 +19,13 @@ an API key, or a model server.
 For non-trivial work, agents should:
 
 1. Read `AGENTS.md` or `CLAUDE.md`.
-2. Route through `docs/agent/INDEX.md`.
-3. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
-4. Verify memory against current code, tests, and docs.
-5. Read the relevant module card or `docs/agent/CODEMAP.md`.
-6. Use Semble, `rg`, Serena, or Understand Anything only as the task requires.
-7. Make the smallest safe change and run targeted checks before broad checks.
-8. Capture task state and reusable lessons when useful.
+2. Build or explain a task bundle with `scripts/task_context.py`; the selected
+   route remains authoritative and optional Semble matches are advisory.
+3. Review the bundle's warnings, gaps, source hashes, and selected excerpts.
+4. Verify useful memory and generated context against current files.
+5. Expand with `rg`, Serena, or Understand Anything only as the task requires.
+6. Make the smallest safe change and run targeted checks before broad checks.
+7. Capture task state and reusable lessons when useful.
 
 Memory is a decision aid, not source of truth. Current repository files win when
 they conflict with memory.
@@ -37,7 +37,8 @@ they conflict with memory.
 - `.agent/memory/`: semantic and procedural long-term memory.
 - `.agent/tasks/`: episodic task logs and audit trails.
 - `.agent/plans/`: lightweight plan lifecycle folders and template.
-- `.agents/skills/`: eight reusable Codex skills with frontmatter and UI metadata.
+- `.agent/context-cache/task-context/`: ignored, reproducible Markdown bundles.
+- `.agents/skills/`: ten reusable Codex skills with frontmatter and UI metadata.
 - `.claude/agents/`: Claude Code subagent templates.
 - `.claude/hooks/`: optional lightweight hook examples.
 - `.codex/templates/`: reviewed templates for machine-local opt-in hooks and rules.
@@ -53,6 +54,7 @@ they conflict with memory.
 | Tool | Solves | Best place in template |
 | --- | --- | --- |
 | Module cards | Human-maintained ownership, interfaces, tests, and pitfalls | Stable context anchor |
+| Task-context compiler | Deterministic, inspectable task-specific Markdown bundles | First context pass for non-trivial work |
 | Memory | Durable lessons from previous tasks | Decision aid before search |
 | Semble | Natural-language code and docs retrieval | Context discovery |
 | `rg` | Exact string, symbol, and path confirmation | Verification |
@@ -68,6 +70,7 @@ they conflict with memory.
 make install
 make agent-tools-check
 make validate-agent-assets
+make task-context TASK="implement a small API endpoint"
 make test-unit
 make lint
 ```
@@ -164,7 +167,29 @@ instead.
 
 The setup script detects the stack and common commands, refreshes
 `docs/agent/CODEMAP.md`, creates missing module cards, ensures task and memory
-scaffolding exists, and runs validation.
+scaffolding exists, runs validation, and smoke-tests the task-context compiler.
+
+## Task Context Compiler
+
+The v0.4 compiler selects a deterministic route from
+`docs/agent/context-routes.json`, reads required routed sources first, and may
+append locally re-read Semble results when the optional tool is available. It
+writes one atomic Markdown artifact per normalized task under the ignored
+`.agent/context-cache/task-context/` directory. Source files remain
+authoritative; bundles are disposable and are never promoted automatically.
+
+```bash
+python scripts/task_context.py build "review the authentication change" --stdout
+python scripts/task_context.py explain "review the authentication change"
+make task-context TASK="review the authentication change"
+make task-context-explain TASK="review the authentication change"
+make task-context-eval
+```
+
+Use `--route <id>` only when the deterministic classification is not the route
+you intend, and `--no-search` for a route-only build. Missing optional search,
+blocked reads, gaps, and truncation are recorded as warnings without making a
+successfully rendered bundle fail.
 
 ## Codex Guardrails
 
@@ -223,6 +248,7 @@ specifications, and agent docs remain authoritative.
 make validate-agent-docs
 make validate-agent-assets
 make agent-kit-check
+make task-context-eval
 make codex-runtime-check
 make check-context-staleness
 make audit-module-cards

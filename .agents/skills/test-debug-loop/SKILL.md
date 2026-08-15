@@ -6,11 +6,12 @@ description: Reproduce, isolate, fix, and re-test a failing test or runtime erro
 # Test Debug Loop
 
 1. Run the smallest failing test or deterministic reproduction.
-2. Preserve the complete actionable error and identify the first relevant failure.
-3. Form one root-cause hypothesis and verify it against current code.
-4. Apply the smallest correction that addresses that cause.
-5. Re-run the exact reproduction before expanding test scope.
-6. Run adjacent regression checks after the focused check passes.
-7. Report the failing command, cause, patch, verification, and any remaining uncertainty.
+2. For a non-trivial failure, run `python scripts/task_context.py build "<task>" --route bug-fix` and review its gaps.
+3. Preserve the complete actionable error and identify the first relevant failure.
+4. Form one root-cause hypothesis and verify it against current code.
+5. Apply the smallest correction that addresses that cause.
+6. Re-run the exact reproduction before expanding test scope.
+7. Run adjacent regression checks after the focused check passes.
+8. Report the failing command, cause, patch, verification, and any remaining uncertainty.
 
 Keep each loop focused on one failure. Do not hide stack traces or replace root-cause analysis with repeated broad retries.

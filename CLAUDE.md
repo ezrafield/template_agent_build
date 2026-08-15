@@ -5,11 +5,13 @@ Use this project as an agent-native codebase.
 ## Start Here
 For every non-trivial task:
 1. Read `docs/agent/INDEX.md`.
-2. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
-3. Verify memory against current code, tests, and docs before relying on it.
-4. Read the relevant module card.
-5. Before executing any plan, roadmap, strategy change, migration, or version upgrade, create or update a Markdown record under `.agent/plans/` from `.agent/plans/template.md`.
-6. Create or update a task note in `.agent/tasks/` if the task has more than one step.
+2. Build and inspect a task-context bundle with `python scripts/task_context.py build "<task>"`.
+3. Review route warnings, gaps, hashes, selected sources, and dropped-source reasons.
+4. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
+5. Verify memory and generated excerpts against current code, tests, and docs before relying on them.
+6. Read full relevant sources only when the bundle or exact retrieval identifies them.
+7. Before executing any plan, roadmap, strategy change, migration, or version upgrade, create or update a Markdown record under `.agent/plans/` from `.agent/plans/template.md`.
+8. Create or update a task note in `.agent/tasks/` if the task has more than one step.
 
 ## Plan Evolution
 
@@ -20,7 +22,7 @@ For every non-trivial task:
 
 ## Token-Saving Behavior
 - Do not explore unrelated directories.
-- Use Semble for natural-language code search before reading many files. Prefer `make code-search QUERY="..." CONTENT=all` when relying on project-local tools.
+- Treat routed task-context sources as authoritative and Semble additions as advisory.
 - Use `rg` for exact symbol and string confirmation.
 - Use Serena only when symbol references, declarations, implementations, diagnostics, or safe refactors require language-server semantics.
 - Use compressed command output for noisy commands when RTK is available.

@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "index_path": "docs/agent/INDEX.md",
+  "defaults": {
+    "max_docs": 10,
+    "max_chars": 40000,
+    "search_content": "all",
+    "search_limit": 5,
+    "selection_order": [
+      "routed-required",
+      "routed-optional",
+      "advisory-search"
+    ]
+  },
+  "exclude_globs": [
+    ".git/**",
+    ".agent/context-cache/**",
+    ".agent/memory/candidates/**",
+    "tools/agent/**/.venv/**",
+    "tools/agent/**/node_modules/**",
+    "**/__pycache__/**",
+    "**/*.pyc"
+  ],
+  "routes": [
+    {
+      "id": "bug-fix",
+      "index_heading": "For Bug Fixes",
+      "triggers": ["bug", "fix", "failure", "failing", "broken", "regression", "runtime error"],
+      "required": [
+        {"path": "docs/agent/CONTEXT_ROUTER.md", "category": "agent-policy", "sections": ["Routing Policy", "Standard Route"]},
+        {"path": "docs/agent/CODEMAP.md", "category": "code-map"}
+      ],
+      "optional": [
+        {"glob": "docs/agent/module-cards/*.md", "category": "module-card", "max_matches": 2},
+        {"glob": "tests/**/*.py", "category": "test", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "api-endpoint",
+      "index_heading": "For New API Endpoints",
+      "triggers": ["api", "endpoint", "http route", "request validation", "controller", "rest"],
+      "required": [
+        {"path": "docs/agent/module-cards/api.md", "category": "module-card"},
+        {"path": "docs/specs/api-contracts.md", "category": "contract"}
+      ],
+      "optional": [
+        {"path": "docs/agent/module-cards/services.md", "category": "module-card"},
+        {"glob": "tests/integration/*.py", "category": "test", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "database-change",
+      "index_heading": "For Database Changes",
+      "triggers": ["database", "migration", "schema", "model", "sql", "persistence"],
+      "required": [
+        {"path": "docs/agent/module-cards/database.md", "category": "module-card"}
+      ],
+      "optional": [
+        {"glob": "docs/adr/*.md", "category": "decision", "max_matches": 2},
+        {"glob": "tests/**/*model*.py", "category": "test", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "frontend-change",
+      "index_heading": "For Frontend Changes",
+      "triggers": ["frontend", "screen", "component", "ui", "user interface", "react", "accessibility"],
+      "required": [
+        {"path": "docs/agent/module-cards/frontend.md", "category": "module-card"},
+        {"path": "docs/product/USER_FLOWS.md", "category": "product"}
+      ],
+      "optional": [
+        {"glob": "tests/**/*front*.py", "category": "test", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "refactor",
+      "index_heading": "For Refactors",
+      "triggers": ["refactor", "rename", "restructure", "simplify", "extract", "move module"],
+      "required": [
+        {"path": "docs/agent/ARCHITECTURE.md", "category": "architecture"},
+        {"path": "docs/agent/PITFALLS.md", "category": "agent-policy"}
+      ],
+      "optional": [
+        {"glob": "docs/agent/module-cards/*.md", "category": "module-card", "max_matches": 2},
+        {"glob": "tests/**/*.py", "category": "test", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "planning-product",
+      "index_heading": "For Planning Or Product Questions",
+      "triggers": ["plan", "roadmap", "strategy", "product", "requirement", "user flow", "success criteria"],
+      "required": [
+        {"path": ".agents/skills/plan-evolution/SKILL.md", "category": "skill"},
+        {"path": "docs/product/PRD.md", "category": "product"},
+        {"path": "docs/product/REQUIREMENTS.md", "category": "requirement"},
+        {"path": "docs/product/USER_FLOWS.md", "category": "product"}
+      ],
+      "optional": [
+        {"glob": ".agent/plans/active/*.md", "category": "plan", "max_matches": 2},
+        {"glob": ".agent/plans/completed/*.md", "category": "plan", "max_matches": 1}
+      ]
+    },
+    {
+      "id": "agent-system",
+      "index_heading": "For Agent, Skill, Tool, Or MCP Changes",
+      "triggers": ["agent", "skill", "codex", "claude", "mcp", "hook", "guardrail", "prompt", "agent kit"],
+      "required": [
+        {"path": "docs/agent/AGENTS_AND_SKILLS.md", "category": "agent-policy", "sections": ["Core Skills", "Progressive Disclosure"]},
+        {"path": "docs/agent/CODEX_CUSTOMIZATION.md", "category": "agent-policy"},
+        {"path": "docs/agent/TOOLS.md", "category": "tooling"},
+        {"path": "docs/agent/MCPS.md", "category": "tooling"},
+        {"path": "docs/agent/COMMAND_OUTPUT_POLICY.md", "category": "agent-policy"}
+      ],
+      "optional": [
+        {"glob": ".agents/skills/*/SKILL.md", "category": "skill", "max_matches": 2},
+        {"glob": "eval/**/*.json", "category": "evaluation", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "memory-maintenance",
+      "index_heading": "For Long-Term Memory Changes",
+      "triggers": ["memory", "promote", "semantic", "procedural", "stale memory", "retire memory"],
+      "required": [
+        {"path": "docs/agent/MEMORY_POLICY.md", "category": "agent-policy"},
+        {"path": "docs/agent/MEMORY_RETRIEVAL.md", "category": "agent-policy"},
+        {"path": "docs/agent/MEMORY_PROMOTION_RULES.md", "category": "agent-policy"},
+        {"path": ".agent/memory/index.json", "category": "memory-index"}
+      ],
+      "optional": [
+        {"glob": ".agent/memory/semantic/*.md", "category": "memory", "max_matches": 2},
+        {"glob": ".agent/memory/procedural/*.md", "category": "memory", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "agent-setup",
+      "index_heading": "For Agent Kit Setup, Install, Or Audit",
+      "triggers": ["agent setup", "install agent", "audit agent kit", "bootstrap agent", "agent kit check"],
+      "required": [
+        {"path": "agentkit-manifest.json", "category": "manifest"},
+        {"path": "docs/agent/TOOLS.md", "category": "tooling"},
+        {"path": "docs/agent/COMMAND_OUTPUT_POLICY.md", "category": "agent-policy"},
+        {"path": ".agents/skills/agent-setup/SKILL.md", "category": "skill"},
+        {"path": "docs/agent/CODEX_CUSTOMIZATION.md", "category": "agent-policy"}
+      ],
+      "optional": [
+        {"glob": "scripts/*agent*.py", "category": "tooling", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "source-understanding",
+      "index_heading": "For Source Understanding Or Code Search",
+      "triggers": ["understand code", "code search", "find implementation", "where is", "source understanding", "dependency impact", "onboarding"],
+      "required": [
+        {"path": "docs/agent/CONTEXT_ROUTER.md", "category": "agent-policy"},
+        {"path": "docs/agent/CODE_SEARCH.md", "category": "agent-policy"},
+        {"path": "docs/agent/CODEMAP.md", "category": "code-map"},
+        {"path": "docs/agent/SOURCE_UNDERSTANDING.md", "category": "agent-policy"},
+        {"path": "docs/agent/module-cards/source-understanding.md", "category": "module-card"}
+      ],
+      "optional": [
+        {"path": ".understand-anything/README.md", "category": "integration"}
+      ]
+    },
+    {
+      "id": "code-review",
+      "index_heading": "For Code Reviews",
+      "triggers": ["code review", "review diff", "review pull request", "merge readiness", "regression risk", "security review"],
+      "required": [
+        {"path": ".agents/skills/code-review/SKILL.md", "category": "skill"},
+        {"path": "docs/agent/CODEMAP.md", "category": "code-map"},
+        {"path": "docs/agent/PITFALLS.md", "category": "agent-policy"}
+      ],
+      "optional": [
+        {"glob": "docs/agent/module-cards/*.md", "category": "module-card", "max_matches": 2},
+        {"glob": "tests/**/*.py", "category": "test", "max_matches": 2}
+      ]
+    },
+    {
+      "id": "architecture-decision",
+      "index_heading": "For Architecture Decisions",
+      "triggers": ["architecture decision", "record adr", "tradeoff", "choose architecture", "service boundary", "dependency choice"],
+      "required": [
+        {"path": ".agents/skills/architecture-decision/SKILL.md", "category": "skill"},
+        {"path": "docs/agent/ARCHITECTURE.md", "category": "architecture"}
+      ],
+      "optional": [
+        {"glob": "docs/adr/*.md", "category": "decision", "max_matches": 3},
+        {"path": "docs/product/REQUIREMENTS.md", "category": "requirement"}
+      ]
+    },
+    {
+      "id": "general",
+      "index_heading": "For General Non-Trivial Work",
+      "triggers": [],
+      "required": [
+        {"path": "docs/agent/CONTEXT_ROUTER.md", "category": "agent-policy", "sections": ["Routing Policy", "Standard Route"]},
+        {"path": "docs/agent/CODEMAP.md", "category": "code-map"}
+      ],
+      "optional": [
+        {"glob": "docs/agent/module-cards/*.md", "category": "module-card", "max_matches": 2}
+      ]
+    }
+  ]
+}

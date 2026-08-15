@@ -6,10 +6,10 @@
       "type": "semantic",
       "scope": "project",
       "path": ".agent/memory/semantic/project-facts.md",
-      "summary": "Stable facts about this agent-native template and its context-loading workflow.",
-      "keywords": ["template", "project", "context", "workflow"],
+      "summary": "Stable facts about the v0.4 agent-native template and its task-context workflow.",
+      "keywords": ["template", "project", "context", "compiler", "routes", "workflow"],
       "confidence": "high",
-      "last_verified": "2026-08-02",
+      "last_verified": "2026-08-15",
       "source_task": ".agent/tasks/README.md"
     },
     {
@@ -17,21 +17,21 @@
       "type": "semantic",
       "scope": "project",
       "path": ".agent/memory/semantic/conventions.md",
-      "summary": "Durable conventions for safe changes, plan evolution records, targeted context, and verification.",
-      "keywords": ["conventions", "scope", "plans", "upgrades", "learning", "tests", "docs"],
+      "summary": "Durable conventions for safe changes, task-context bundles, plan records, and verification.",
+      "keywords": ["conventions", "scope", "context", "routes", "plans", "upgrades", "tests", "docs"],
       "confidence": "high",
-      "last_verified": "2026-08-07",
-      "source_task": ".agent/tasks/2026-08-07-plan-evolution-governance.md"
+      "last_verified": "2026-08-15",
+      "source_task": ".agent/tasks/README.md"
     },
     {
       "id": "decisions",
       "type": "semantic",
       "scope": "project",
       "path": ".agent/memory/semantic/decisions.md",
-      "summary": "Durable decisions about keeping the template lightweight and dependency-free.",
-      "keywords": ["decisions", "dependencies", "memory", "template"],
+      "summary": "Durable decisions about the lightweight template and route-first Markdown context compiler.",
+      "keywords": ["decisions", "dependencies", "memory", "context", "routes", "semble", "template"],
       "confidence": "high",
-      "last_verified": "2026-08-02",
+      "last_verified": "2026-08-15",
       "source_task": ".agent/tasks/README.md"
     },
     {

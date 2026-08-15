@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from scripts.validate_agent_assets import (
@@ -6,6 +7,7 @@ from scripts.validate_agent_assets import (
     parse_skill_frontmatter,
     validate_instructions,
     validate_plan_system,
+    validate_task_context_routes,
 )
 
 
@@ -94,3 +96,41 @@ def test_plan_system_reports_learning_section_missing_from_record(tmp_path: Path
         in error
         for error in report.errors
     )
+
+
+def test_task_context_routes_report_index_drift(tmp_path: Path) -> None:
+    write(tmp_path / "docs" / "agent" / "INDEX.md", "## Different Heading\n")
+    manifest = {
+        "schema_version": 1,
+        "index_path": "docs/agent/INDEX.md",
+        "defaults": {
+            "max_docs": 10,
+            "max_chars": 40000,
+            "search_content": "all",
+            "search_limit": 5,
+            "selection_order": [
+                "routed-required",
+                "routed-optional",
+                "advisory-search",
+            ],
+        },
+        "exclude_globs": [],
+        "routes": [
+            {
+                "id": "general",
+                "index_heading": "General Route",
+                "triggers": [],
+                "required": [],
+                "optional": [],
+            }
+        ],
+    }
+    write(
+        tmp_path / "docs" / "agent" / "context-routes.json",
+        json.dumps(manifest),
+    )
+    report = ValidationReport()
+
+    validate_task_context_routes(tmp_path, report)
+
+    assert any("## General Route" in error for error in report.errors)

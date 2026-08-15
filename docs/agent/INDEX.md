@@ -1,6 +1,16 @@
 # Agent Context Index
 
-Use this file to choose the smallest useful context for the task.
+Use this file to understand the smallest useful context for the task.
+`docs/agent/context-routes.json` is the validated machine-readable source for
+route IDs, triggers, ordering, source selections, section slices, and
+exclusions. For non-trivial work, compile and inspect the route with:
+
+```bash
+python scripts/task_context.py build "<task>"
+```
+
+Routed requirements remain authoritative. Optional Semble matches may fill
+remaining capacity, but the compiler re-reads their referenced local lines.
 
 ## For Bug Fixes
 Read:
@@ -42,6 +52,13 @@ Read:
 3. Current tests
 4. `docs/agent/PITFALLS.md`
 
+## For Code Reviews
+Read:
+1. `.agents/skills/code-review/SKILL.md`
+2. `docs/agent/CODEMAP.md`
+3. `docs/agent/PITFALLS.md`
+4. Relevant module cards and tests
+
 ## For Planning Or Product Questions
 Read:
 1. `.agents/skills/plan-evolution/SKILL.md`
@@ -49,6 +66,13 @@ Read:
 3. `docs/product/PRD.md`
 4. `docs/product/REQUIREMENTS.md`
 5. `docs/product/USER_FLOWS.md`
+
+## For Architecture Decisions
+Read:
+1. `.agents/skills/architecture-decision/SKILL.md`
+2. `docs/agent/ARCHITECTURE.md`
+3. Relevant ADRs in `docs/adr/`
+4. Relevant product requirements
 
 ## For Agent, Skill, Tool, Or MCP Changes
 Read:
@@ -85,3 +109,9 @@ Read:
 5. `docs/agent/module-cards/source-understanding.md`
 6. `.understand-anything/README.md`
 7. `.understand-anything/knowledge-graph.json` only through targeted search when it exists
+
+## For General Non-Trivial Work
+Read:
+1. `docs/agent/CONTEXT_ROUTER.md`
+2. `docs/agent/CODEMAP.md`
+3. Relevant module cards

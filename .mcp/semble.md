@@ -34,9 +34,9 @@ It also sets `HF_HOME` to `tools/agent/.hf-cache` and disables Hugging Face syml
 
 ## Agent Policy
 
-1. Read `docs/agent/INDEX.md`.
-2. Read `docs/agent/CODEMAP.md` or the relevant module card.
-3. Use Semble to identify candidate files.
+1. Build and inspect a task-context bundle for non-trivial work.
+2. Treat routed requirements as authoritative and Semble results as advisory.
+3. Re-read local paths and line ranges before relying on search content.
 4. Use `rg` to confirm exact symbols and strings.
 5. Read full files only after retrieval narrows the target list.
 

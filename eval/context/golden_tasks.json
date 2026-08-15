@@ -1,0 +1,100 @@
+{
+  "defaults": {
+    "expected_warning_substrings": [],
+    "max_docs": 10,
+    "max_chars": 40000
+  },
+  "cases": [
+  {
+    "id": "bug-fix",
+    "task": "Fix a failing login regression",
+    "expected_route": "bug-fix",
+    "expected_docs": ["docs/agent/CONTEXT_ROUTER.md", "docs/agent/CODEMAP.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "api-endpoint",
+    "task": "Add a new API endpoint with request validation",
+    "expected_route": "api-endpoint",
+    "expected_docs": ["docs/agent/module-cards/api.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "database-change",
+    "task": "Create a database schema migration",
+    "expected_route": "database-change",
+    "expected_docs": ["docs/agent/module-cards/database.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "frontend-change",
+    "task": "Build an accessible frontend screen component",
+    "expected_route": "frontend-change",
+    "expected_docs": ["docs/agent/module-cards/frontend.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "refactor",
+    "task": "Refactor and rename the service module",
+    "expected_route": "refactor",
+    "expected_docs": ["docs/agent/ARCHITECTURE.md", "docs/agent/PITFALLS.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "planning-product",
+    "task": "Create a product roadmap and success criteria",
+    "expected_route": "planning-product",
+    "expected_docs": [".agents/skills/plan-evolution/SKILL.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "agent-system",
+    "task": "Upgrade the Codex agent skill and guardrail",
+    "expected_route": "agent-system",
+    "expected_docs": ["docs/agent/AGENTS_AND_SKILLS.md", "docs/agent/CODEX_CUSTOMIZATION.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "memory-maintenance",
+    "task": "Promote durable semantic memory and retire stale memory",
+    "expected_route": "memory-maintenance",
+    "expected_docs": ["docs/agent/MEMORY_POLICY.md", ".agent/memory/index.json"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "agent-setup",
+    "task": "Audit agent kit setup and bootstrap agent tools",
+    "expected_route": "agent-setup",
+    "expected_docs": ["agentkit-manifest.json", ".agents/skills/agent-setup/SKILL.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "source-understanding",
+    "task": "Use code search to find implementation and understand code",
+    "expected_route": "source-understanding",
+    "expected_docs": ["docs/agent/CODE_SEARCH.md", "docs/agent/SOURCE_UNDERSTANDING.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "code-review",
+    "task": "Code review this pull request for merge readiness and regression risk",
+    "expected_route": "code-review",
+    "expected_docs": [".agents/skills/code-review/SKILL.md", "docs/agent/CODEMAP.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "architecture-decision",
+    "task": "Record ADR tradeoffs for this architecture decision",
+    "expected_route": "architecture-decision",
+    "expected_docs": [".agents/skills/architecture-decision/SKILL.md", "docs/agent/ARCHITECTURE.md"],
+    "forbidden_docs": [".env"]
+  },
+  {
+    "id": "general",
+    "task": "Handle the requested work carefully",
+    "expected_route": "general",
+    "expected_docs": ["docs/agent/CONTEXT_ROUTER.md", "docs/agent/CODEMAP.md"],
+    "forbidden_docs": [".env"]
+  }
+  ]
+}

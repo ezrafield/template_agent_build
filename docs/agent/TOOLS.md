@@ -6,6 +6,8 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 
 | Script | Purpose |
 | --- | --- |
+| `scripts/task_context.py` | Build or explain an inspectable Markdown context bundle for one task. |
+| `scripts/task_context_engine.py` | Validate routes and perform deterministic selection, safe reads, budgeting, redaction, and rendering. |
 | `scripts/generate_codemap.py` | Refresh `docs/agent/CODEMAP.md` from source folders. |
 | `scripts/agent_setup.py` | Detect stack and commands, refresh agent context, and run validation. |
 | `scripts/agentkit_installer.py` | Install or update agent-kit files from `agentkit-manifest.json`. |
@@ -34,6 +36,7 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `eval/retrieval/run_retrieval_eval.py` | Check whether Semble searches return expected context paths. |
 | `eval/agent/run_hook_eval.py` | Exercise deterministic hook inputs, outputs, and non-leakage behavior. |
 | `eval/skills/run_skill_routing_eval.py` | Validate routing fixtures or run authenticated non-gating Codex routing measurements. |
+| `eval/context/run_task_context_eval.py` | Run deterministic no-Semble golden fixtures for every task-context route. |
 
 ## Command Output
 
@@ -72,6 +75,7 @@ Generated and ignored:
 - `tools/agent/.npm-cache/`
 - `tools/agent/.hf-cache/`
 - `.agent/context-cache/semble/`
+- `.agent/context-cache/task-context/`
 
 Semble and Serena use separate `uv` environments because Serena pins `pathspec==0.12.1`, while Semble search needs a newer `pathspec` API.
 
@@ -84,6 +88,9 @@ make agent-tools-install
 make agent-tools-check
 make update-module-cards
 make targeted-tests
+make task-context TASK="implement a service change"
+make task-context-explain TASK="implement a service change"
+make task-context-eval
 make validate-agent-docs
 make validate-agent-assets
 make agent-kit-check
@@ -121,7 +128,10 @@ make retrieval-eval
 - Prefer scripts for deterministic checks.
 - Keep active project hooks and rules opt-in, machine-local, reviewed, and trusted.
 - Do not use command `allow` rules to bypass the normal sandbox for routine tests or lint.
-- Prefer Semble + `rg` + CODEMAP/module cards for normal retrieval.
+- Build the routed task-context bundle before non-trivial navigation, changes,
+  debugging, reviews, architecture decisions, plans, or memory work.
+- Treat route requirements as authoritative and Semble additions as advisory.
+- Prefer the bundle + `rg` + CODEMAP/module cards for normal retrieval.
 - Keep Serena optional for language-server backed symbol work.
 - Use Repomix as an export tool, not as the normal daily retrieval workflow.
 - Prefer targeted checks before broad suites.

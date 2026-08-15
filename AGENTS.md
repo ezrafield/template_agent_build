@@ -2,48 +2,50 @@
 
 ## Project Purpose
 
-This repository is an agent-native project template for Codex, Claude Code, and similar coding agents. It demonstrates progressive context loading, discoverable skills, deterministic validation, and lightweight project memory.
+This agent-native template demonstrates progressive context, skills, deterministic validation, and project memory.
 
 ## Instruction Hierarchy
 
 - Read this file before non-trivial work, then route through `docs/agent/INDEX.md`.
 - Codex loads at most one instruction file per directory from the repository root to the working directory. At one level, `AGENTS.override.md` is preferred over `AGENTS.md`; ancestors remain active.
-- Use a root `AGENTS.override.md` only as a temporary local replacement. Use nested instructions for durable directory-specific guidance.
+- Use a root override only temporarily; use nested instructions for durable directory guidance.
 - Project instructions and skills do not override system, managed, safety, or explicit user constraints.
 
 ## Plan Evolution Rule
 
 - Before executing any explicit plan, roadmap, strategy change, migration, or version upgrade—or whenever work is organized as a multi-step plan—use `$plan-evolution` and create or update its Markdown record under `.agent/plans/`.
-- Treat chat or tool plans as transient. Keep the file current with the goal, strategy hypothesis, success signals, decisions, outcome evidence, and separate learning for the user and AI process; move closed records to `completed/`.
-- Create one linked record for every material version upgrade. Read-only answers and unplanned one-step actions are exempt. Store concise rationale, never secrets, private data, or hidden chain-of-thought.
+- Keep the record current with goals, strategy, signals, decisions, evidence, and user/AI learning; move closed records to `completed/`.
+- Create one linked record per material upgrade. Read-only answers and unplanned one-step actions are exempt. Never store secrets, private data, or hidden chain-of-thought.
 
 ## Default Workflow
 
 1. Understand the task and keep its scope explicit.
-2. Read `docs/agent/INDEX.md` and only the context it routes to.
-3. Check `.agent/memory/index.json` for relevant guidance, then verify it against current files.
-4. Use targeted retrieval before full-file reads: semantic search when useful, `rg` for exact confirmation, and symbol tooling only when references or safe refactors require it.
-5. Before editing, identify the selected files, why they matter, and the main uncertainty or risk.
-6. Make the smallest safe change and update tests or docs when behavior changes.
-7. Run targeted checks before broader checks.
-8. Report changed files, commands run, and remaining risks.
+2. Read `docs/agent/INDEX.md`, then build and inspect a task-context bundle for non-trivial work with `python scripts/task_context.py build "<task>"`.
+3. Review warnings, gaps, hashes, selections, and drops; routes are authoritative and Semble is advisory.
+4. Check `.agent/memory/index.json` for relevant guidance, then verify memory and generated excerpts against current files.
+5. Before full-file reads, use `rg` for exact checks and symbol tools for references or refactors.
+6. Before editing, identify the selected files, why they matter, and the main uncertainty or risk.
+7. Make the smallest safe change and update tests or docs when behavior changes.
+8. Run targeted checks before broader checks.
+9. Report changed files, commands run, and remaining risks.
 
 ## Context Rules
 
 - Do not scan the whole repository unless the task requires it.
-- Prefer module cards, targeted reads, and deterministic scripts over broad context loading.
+- Prefer the task-context bundle, module cards, targeted reads, and deterministic scripts over broad context loading.
+- Treat generated bundles as disposable ignored cache data; never promote them automatically into task logs or memory.
 - Treat memory and generated knowledge graphs as navigation aids, not source of truth.
-- Keep command output compact when possible, but rerun the smallest failing command in raw mode when details are unclear.
+- Keep output compact; rerun the smallest failing command raw when unclear.
 - Do not hide failures, exit codes, stack traces, or actionable diagnostics.
 
 ## Safety and Code Rules
 
 - Preserve user-owned changes and keep work scoped to the request.
-- Follow existing patterns before introducing abstractions or dependencies.
+- Follow existing patterns before adding abstractions or dependencies.
 - Do not change public APIs without updating relevant docs or specifications.
 - Do not modify generated files manually.
 - Do not expose secrets or weaken security checks without explicit authorization.
-- Prefer recoverable operations and targeted tests before broad suites.
+- Prefer recoverable operations and targeted tests.
 
 ## Response Style
 

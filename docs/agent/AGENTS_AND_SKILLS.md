@@ -18,6 +18,7 @@ concise workflow body, and Codex UI metadata under `agents/openai.yaml`.
 | `task-handoff` | Capture concise continuation state for multi-step work. |
 | `memory-maintenance` | Promote, validate, or retire semantic and procedural memory. |
 | `plan-evolution` | Record plans and upgrades, then compare strategy with outcome evidence and learning. |
+| `task-context` | Build, explain, or evaluate deterministic Markdown context bundles. |
 
 The manifest is the source of truth for required and optional command
 dependencies. Skill versions inherit the agent-kit version; do not add a
@@ -42,7 +43,7 @@ workflow without storing secrets or hidden chain-of-thought.
 - Keep CLI dependencies in `agentkit-manifest.json`; `agents/openai.yaml`
   currently declares only supported MCP dependencies.
 
-## v0.2 Skill Migration
+## Skill Migration
 
 | Removed name | v0.3 replacement |
 | --- | --- |
@@ -52,15 +53,16 @@ workflow without storing secrets or hidden chain-of-thought.
 | `source-understanding` | Optional source-understanding reference in `repo-navigator` |
 | `understand-refresh` | Installed Understand Anything plugin or `make understand` |
 
-The v0.3 updater backs up and prunes only obsolete files previously recorded in
+The updater backs up and prunes only obsolete files previously recorded in
 `.agentkit-installed-files`. It never prunes merged entrypoints,
 copy-if-missing memory, or unrecorded project files.
 
 ## Claude Code Compatibility
 
 Claude Code subagent templates remain under `.claude/agents/`, and optional
-hook examples remain under `.claude/hooks/`. Codex skill discovery and runtime
-guardrails are the v0.3 primary target; behavioral parity is not implied.
+hook examples remain under `.claude/hooks/`. Codex skill discovery,
+task-context bundles, and runtime guardrails are the v0.4 primary target;
+behavioral parity is not implied.
 
 ## Long-Term Memory
 

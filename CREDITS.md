@@ -8,6 +8,7 @@ are recommended as optional tools.
 
 | Project | What this template learned or adopted | License |
 | --- | --- | --- |
+| [contextd](https://github.com/philngt/contextd) | Treat task context as a deterministic build artifact with explainable selection, omissions, budgets, and provenance. This template implements a smaller route-first Markdown compiler and does not depend on or vendor contextd. | MIT |
 | [PlugMem](https://github.com/TIMAN-group/PlugMem) | The semantic, procedural, and episodic memory taxonomy; extracting compact reusable knowledge from verbose task history; and treating retrieval as input to reasoning rather than truth. This template implements a smaller Markdown-and-JSON workflow and does not depend on PlugMem. | Apache-2.0 |
 | [RTK](https://github.com/rtk-ai/rtk) | Command output is part of the context budget. The template therefore prefers compact output for noisy commands, preserves failures, supports raw reruns, and keeps compression optional. | Apache-2.0 |
 | [Semble](https://github.com/MinishLab/semble) | Natural-language retrieval can narrow likely source files before exact search and full-file reads. The template uses Semble as an optional retrieval layer and keeps `rg` as the exact confirmation step. | MIT |
@@ -30,6 +31,8 @@ license, copyright notices, contribution rules, and trademarks.
 
 License labels and repository links were verified on 2026-06-21. Consult the
 upstream repositories for their current terms.
+
+The contextd repository link and license were verified on 2026-08-15.
 
 Thank you to the maintainers and contributors who make these ideas available
 for others to study, test, and improve.

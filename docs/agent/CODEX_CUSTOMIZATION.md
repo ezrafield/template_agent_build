@@ -33,6 +33,11 @@ execution plan, or material upgrade must have a durable Markdown record under
 `.agent/plans/`. The file carries the strategy hypothesis through observed
 evidence and retrospective learning; in-chat plans are not the audit record.
 
+`task-context` exposes the v0.4 context compiler. Its JSON manifest keeps route
+classification and ordered source requirements machine-checkable, while its
+Markdown output keeps selection, provenance, warnings, and excerpts directly
+inspectable. The compiler does not install an automatic prompt hook.
+
 ## Opt-In Hooks and Rules
 
 Run:
@@ -71,6 +76,8 @@ permissions, approvals, and hooks.
   plan-system, and guardrail-template checks.
 - `make codex-runtime-check`: Codex feature and `execpolicy` fixtures; no API
   authentication required.
+- `make task-context-eval`: deterministic, route-complete golden context fixtures
+  with optional Semble disabled.
 - `python eval/agent/run_hook_eval.py`: deterministic hook behavior fixtures.
 - `make skill-routing-eval`: authenticated, non-gating routing measurements.
 

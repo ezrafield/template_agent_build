@@ -3,8 +3,8 @@
 Type: semantic
 Scope: project
 Confidence: high
-Last verified: 2026-08-07
-Source task: .agent/tasks/2026-08-07-plan-evolution-governance.md
+Last verified: 2026-08-15
+Source task: .agent/tasks/README.md
 
 ## When to use
 
@@ -12,7 +12,8 @@ Use this memory before implementing non-trivial template or code changes.
 
 ## Content
 
-- Prefer targeted reads, `rg`, Semble when available, module cards, and deterministic scripts over broad repository scans.
+- Build and review a task-context bundle before non-trivial navigation, implementation, debugging, review, architecture, planning, or memory work.
+- Prefer routed excerpts, targeted reads, `rg`, advisory Semble, module cards, and deterministic scripts over broad repository scans.
 - Make the smallest safe change and update tests or docs when behavior changes.
 - Run targeted tests before broad checks.
 - Use compressed command output for noisy commands when RTK is available, and rerun raw output only when compressed output is unclear.
@@ -32,10 +33,13 @@ Use this memory before implementing non-trivial template or code changes.
 - `docs/agent/CODEX_CUSTOMIZATION.md`
 - `.agents/skills/plan-evolution/SKILL.md`
 - `.agent/plans/template.md`
+- `.agents/skills/task-context/SKILL.md`
+- `docs/agent/context-routes.json`
 
 ## Staleness triggers
 
 - Context retrieval policy changes.
+- Task-context compiler behavior or workflow integration changes.
 - Command output policy changes.
 - New required tools replace the existing default workflow.
 - Instruction budgets, skill packaging, or guardrail policy changes.

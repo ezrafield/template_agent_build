@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "name": "agent-native-template",
-  "version": "0.3.0",
-  "description": "Progressive-context agent kit files for installation into existing projects.",
+  "version": "0.4.0",
+  "description": "Progressive-context agent kit with inspectable routed task-context bundles.",
   "runtime": {
     "primary_host": "codex",
     "supported_hosts": ["codex", "claude-code"],
@@ -70,6 +70,14 @@
       "optional_commands": []
     },
     {
+      "name": "task-context",
+      "path": ".agents/skills/task-context",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": ["python"],
+      "optional_commands": ["make"]
+    },
+    {
       "name": "task-handoff",
       "path": ".agents/skills/task-handoff",
       "required": true,
@@ -91,6 +99,7 @@
     ".codex/templates/default.rules"
   ],
   "included_harness_files": [
+    "agentkit-manifest.json",
     "AGENTS.override.md.example",
     ".agents/skills/",
     ".claude/agents/",
@@ -106,8 +115,11 @@
     ".understand-anything/README.md",
     ".understand-anything/.understandignore",
     "docs/agent/",
+    "docs/adr/0003-codex-agent-system.md",
+    "docs/adr/0004-task-context-compiler.md",
     "scripts/",
     "eval/agent/",
+    "eval/context/",
     "eval/retrieval/",
     "eval/rules/",
     "eval/skills/"
@@ -138,7 +150,6 @@
     "tests/",
     "docs/product/",
     "docs/specs/",
-    "docs/adr/",
     ".env",
     ".env.example",
     "package.json",

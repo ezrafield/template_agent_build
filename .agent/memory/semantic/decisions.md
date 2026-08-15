@@ -3,7 +3,7 @@
 Type: semantic
 Scope: project
 Confidence: high
-Last verified: 2026-08-02
+Last verified: 2026-08-15
 Source task: .agent/tasks/README.md
 
 ## When to use
@@ -17,8 +17,12 @@ Use this memory when deciding whether to add dependencies or expand the agent ki
 - Memory promotion is manual: scripts can generate candidates, but promoted memory must be reviewed and intentionally indexed.
 - Current source code, tests, and docs override memory when they conflict.
 - Repository skills inherit the agent-kit version; the template does not maintain a separate skill lockfile.
-- Codex is the primary v0.3 runtime, while Claude Code assets remain supported without parity guarantees.
+- Codex is the primary v0.4 runtime, while Claude Code assets remain supported without parity guarantees.
 - Fresh clones do not activate project hooks or command rules; users generate and trust them explicitly.
+- Task context is persisted as one Markdown artifact without a JSON sidecar; the JSON route manifest is configuration only.
+- Routed requirements are selected before advisory Semble matches, and the compiler re-reads every accepted local line range.
+- Missing context, blocked reads, truncation, and unavailable search are warnings; invalid input/configuration and output materialization failures are errors.
+- The task-context compiler has no automatic prompt hook.
 
 ## Related files
 
@@ -26,6 +30,8 @@ Use this memory when deciding whether to add dependencies or expand the agent ki
 - `docs/agent/MEMORY_PROMOTION_RULES.md`
 - `.agent/memory/index.json`
 - `docs/adr/0003-codex-agent-system.md`
+- `docs/adr/0004-task-context-compiler.md`
+- `docs/agent/context-routes.json`
 - `agentkit-manifest.json`
 
 ## Staleness triggers
@@ -34,3 +40,4 @@ Use this memory when deciding whether to add dependencies or expand the agent ki
 - Promotion policy changes from manual to automatic or rule-assisted.
 - Template dependency policy changes.
 - Runtime priority, skill versioning, or guardrail activation policy changes.
+- Task-context storage, ordering, search authority, or failure semantics change.

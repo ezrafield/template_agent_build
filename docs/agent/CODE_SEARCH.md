@@ -18,11 +18,11 @@ Use optionally:
 
 ## Search Order
 
-1. Read `docs/agent/INDEX.md`.
-2. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
-3. Verify useful memory against current code, tests, and docs.
-4. Read `docs/agent/CODEMAP.md` or the relevant module card.
-5. Search natural language with Semble:
+1. Build and review a task-context bundle for the task.
+2. Check `.agent/memory/index.json` for additional relevant memory.
+3. Verify useful memory and selected excerpts against current code, tests, and docs.
+4. Read full files only after the bundle identifies likely targets.
+5. Search natural language with Semble when the compiler's advisory results need expansion:
 
 ```bash
 semble search "<task>" . --content code

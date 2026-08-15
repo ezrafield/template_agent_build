@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 from scripts.agentkit_installer import check, install
@@ -12,7 +14,7 @@ def write(path: Path, text: str) -> None:
 def create_source(root: Path) -> None:
     manifest = {
         "schema_version": 2,
-        "version": "0.3.0",
+        "version": "0.4.0",
         "skills": [],
         "included_harness_files": ["kit/"],
         "merge_files": ["AGENTS.md"],
@@ -63,19 +65,45 @@ def test_update_backs_up_and_prunes_only_recorded_obsolete_files(tmp_path: Path)
     assert backups[0].read_text(encoding="utf-8") == "old managed content\n"
 
 
-def test_real_manifest_fresh_install_has_nine_skills_and_no_active_guardrails(tmp_path: Path) -> None:
+def test_real_manifest_fresh_install_has_ten_skills_and_task_context(tmp_path: Path) -> None:
     source = Path(__file__).resolve().parents[2]
     target = tmp_path / "installed-project"
 
     install("install", source, target)
 
     skills = list((target / ".agents" / "skills").glob("*/SKILL.md"))
-    assert len(skills) == 9
+    assert len(skills) == 10
+    assert (target / ".agents" / "skills" / "task-context" / "SKILL.md").is_file()
+    assert (target / "scripts" / "task_context.py").is_file()
+    assert (target / "docs" / "agent" / "context-routes.json").is_file()
+    assert (target / "eval" / "context" / "golden_tasks.json").is_file()
+    assert (target / "docs" / "adr" / "0004-task-context-compiler.md").is_file()
     assert not (target / ".codex" / "hooks.json").exists()
     assert not (target / ".codex" / "rules" / "default.rules").exists()
     assert not list(target.rglob("__pycache__"))
     assert not list(target.rglob("*.pyc"))
     assert check(source, target) == 0
+
+    setup = subprocess.run(
+        [sys.executable, "scripts/agent_setup.py"],
+        cwd=target,
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=60,
+    )
+    assert setup.returncode == 0, setup.stdout + setup.stderr
+    assert list((target / ".agent" / "context-cache" / "task-context").glob("*.md"))
+
+    golden = subprocess.run(
+        [sys.executable, "eval/context/run_task_context_eval.py"],
+        cwd=target,
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=60,
+    )
+    assert golden.returncode == 0, golden.stdout + golden.stderr
 
     obsolete = target / ".agents" / "skills" / "code-search" / "SKILL.md"
     write(obsolete, "# v0.2 managed skill\n")

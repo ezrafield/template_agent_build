@@ -69,6 +69,9 @@ def detect_commands() -> dict[str, str]:
             "codex-guardrails-enable",
             "codex-runtime-check",
             "skill-routing-eval",
+            "task-context",
+            "task-context-explain",
+            "task-context-eval",
         ]:
             if f"{name}:" in make_text:
                 commands[name] = f"make {name}"
@@ -97,6 +100,11 @@ def write_commands(commands: dict[str, str]) -> None:
             "- code-search: `make code-search QUERY=\"source understanding\" CONTENT=all`",
             "- ast-grep: `make ast-grep PATTERN=\"def $NAME($$$ARGS): $$$BODY\" LANG=python`",
             "- repomix: `make repomix`",
+            "",
+            "Task context compiler:",
+            "- build: `make task-context TASK=\"describe the task\"`",
+            "- explain: `make task-context-explain TASK=\"describe the task\"`",
+            "- evaluate: `make task-context-eval`",
             "",
             "Optional compact-output helpers:",
             "- rtk-gain: `make rtk-gain`",
@@ -178,7 +186,8 @@ def ensure_agent_entrypoints(stack: list[str], commands: dict[str, str]) -> None
         path.write_text(
             f"# {filename}\n\n"
             f"Project stack: {summary}.\n\n"
-            "Start by reading `docs/agent/INDEX.md`, then only the relevant module card.\n\n"
+            "Start by reading `docs/agent/INDEX.md`, then build and inspect task context with "
+            "`python scripts/task_context.py build \"<task>\"` before non-trivial work.\n\n"
             "Prefer compressed output for noisy commands when RTK is available, and rerun raw output only "
             "when failures are unclear.\n\n"
             "## Commands\n"
@@ -192,6 +201,23 @@ def run_script(relative: str) -> int:
     return result.returncode
 
 
+def run_task_context_smoke() -> int:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/task_context.py",
+            "build",
+            "validate the installed agent setup",
+            "--route",
+            "agent-setup",
+            "--no-search",
+        ],
+        cwd=ROOT,
+        check=False,
+    )
+    return result.returncode
+
+
 def main() -> None:
     stack = detect_stack()
     commands = detect_commands()
@@ -201,13 +227,17 @@ def main() -> None:
     ensure_agent_entrypoints(stack, commands)
 
     failures = []
-    for script in [
-        "scripts/generate_codemap.py",
-        "scripts/update_module_cards.py",
-        "scripts/validate_agent_assets.py",
-    ]:
+    scripts = ["scripts/validate_agent_assets.py"]
+    if exists("src"):
+        scripts[0:0] = [
+            "scripts/generate_codemap.py",
+            "scripts/update_module_cards.py",
+        ]
+    for script in scripts:
         if run_script(script) != 0:
             failures.append(script)
+    if run_task_context_smoke() != 0:
+        failures.append("task-context smoke check")
 
     print(f"Detected stack: {', '.join(stack)}")
     print(f"Detected commands: {', '.join(sorted(commands)) or 'none'}")

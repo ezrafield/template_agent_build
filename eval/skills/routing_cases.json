@@ -124,5 +124,19 @@
     "expected": ["plan-evolution", "safe-implementation"],
     "allowed": ["architecture-decision", "repo-navigator"],
     "forbidden": ["code-review"]
+  },
+  {
+    "id": "build_task_context",
+    "prompt": "Build the routed Markdown task-context bundle and show which sources were selected or dropped.",
+    "expected": ["task-context"],
+    "allowed": ["repo-navigator"],
+    "forbidden": ["safe-implementation"]
+  },
+  {
+    "id": "explain_task_context",
+    "prompt": "Explain why this task-context route selected these documents and whether its golden evaluation is healthy.",
+    "expected": ["task-context"],
+    "allowed": [],
+    "forbidden": ["task-handoff"]
   }
 ]

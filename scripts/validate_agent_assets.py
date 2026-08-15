@@ -6,6 +6,11 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+try:
+    from scripts.task_context_engine import validate_route_manifest
+except ImportError:  # pragma: no cover - direct script execution path
+    from task_context_engine import validate_route_manifest  # type: ignore
+
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[1]
 ROOT_TARGET_BYTES = 4 * 1024
@@ -15,7 +20,7 @@ CHAIN_WARN_BYTES = 16 * 1024
 CHAIN_MAX_BYTES = 20 * 1024
 SKILL_MAX_BYTES = 4 * 1024
 SKILL_DESCRIPTION_MAX_CHARS = 300
-EXPECTED_SKILL_COUNT = 9
+EXPECTED_SKILL_COUNT = 10
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PLAN_RECORD_NAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 PLAN_REQUIRED_HEADINGS = {
@@ -44,6 +49,7 @@ REQUIRED_FILES = {
     "AGENTS.override.md.example",
     "agentkit-manifest.json",
     "docs/agent/INDEX.md",
+    "docs/agent/context-routes.json",
     "docs/agent/CODEMAP.md",
     "docs/agent/CODE_SEARCH.md",
     "docs/agent/CONTEXT_ROUTER.md",
@@ -51,6 +57,7 @@ REQUIRED_FILES = {
     "docs/agent/AGENTS_AND_SKILLS.md",
     "docs/agent/CODEX_CUSTOMIZATION.md",
     "docs/adr/0003-codex-agent-system.md",
+    "docs/adr/0004-task-context-compiler.md",
     "docs/agent/TOOLS.md",
     "docs/agent/MCPS.md",
     "docs/agent/MEMORY_POLICY.md",
@@ -64,6 +71,10 @@ REQUIRED_FILES = {
     "scripts/agentkit_installer.py",
     "scripts/enable_codex_guardrails.py",
     "scripts/run_agent_hook.py",
+    "scripts/task_context.py",
+    "scripts/task_context_engine.py",
+    "eval/context/golden_tasks.json",
+    "eval/context/run_task_context_eval.py",
 }
 
 
@@ -272,8 +283,8 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
 
     if manifest.get("schema_version") != 2:
         report.error("agentkit-manifest.json must use schema_version 2.")
-    if manifest.get("version") != "0.3.0":
-        report.error("agentkit-manifest.json must declare version 0.3.0.")
+    if manifest.get("version") != "0.4.0":
+        report.error("agentkit-manifest.json must declare version 0.4.0.")
 
     runtime = manifest.get("runtime")
     if not isinstance(runtime, dict):
@@ -289,8 +300,16 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
     workflow = root / ".github" / "workflows" / "agent-doc-check.yml"
     if not isinstance(ci_version, str) or not ci_version:
         report.error("Manifest runtime.codex_cli_ci_version must be a non-empty string.")
-    elif workflow.is_file() and f"@openai/codex@{ci_version}" not in workflow.read_text(encoding="utf-8"):
-        report.error("Agent CI must install the Codex version pinned by the manifest.")
+    elif workflow.is_file():
+        workflow_text = workflow.read_text(encoding="utf-8")
+        if f"@openai/codex@{ci_version}" not in workflow_text:
+            report.error("Agent CI must install the Codex version pinned by the manifest.")
+        for required_ci_command in (
+            "python -m pytest tests/agent -q",
+            "python eval/context/run_task_context_eval.py",
+        ):
+            if required_ci_command not in workflow_text:
+                report.error(f"Agent CI must run `{required_ci_command}`.")
 
     entries = manifest.get("skills")
     if not isinstance(entries, list):
@@ -316,7 +335,7 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
         if path_value != expected_path:
             report.error(f"Skill {name} path must be {expected_path}.")
         if entry.get("required") is not True:
-            report.error(f"Skill {name} must be marked required in v0.3.0.")
+            report.error(f"Skill {name} must be marked required in v0.4.0.")
         if entry.get("hosts") != ["codex"]:
             report.error(f"Skill {name} must declare hosts [\"codex\"].")
         for field_name in ("required_commands", "optional_commands"):
@@ -463,6 +482,16 @@ def validate_plan_system(root: Path, report: ValidationReport) -> None:
     report.detail(f"Plan records validated: {max(0, len(paths) - 1)}.")
 
 
+def validate_task_context_routes(root: Path, report: ValidationReport) -> None:
+    errors = validate_route_manifest(root)
+    for error in errors:
+        report.error(error)
+    if not errors:
+        route_path = root / "docs" / "agent" / "context-routes.json"
+        route_count = len(json.loads(route_path.read_text(encoding="utf-8"))["routes"])
+        report.detail(f"Task-context routes validated: {route_count}.")
+
+
 def validate(root: Path) -> ValidationReport:
     root = root.resolve()
     report = ValidationReport()
@@ -470,6 +499,7 @@ def validate(root: Path) -> ValidationReport:
     validate_instructions(root, report)
     validate_manifest_and_skills(root, report)
     validate_plan_system(root, report)
+    validate_task_context_routes(root, report)
     validate_guardrail_templates(root, report)
     return report
 
