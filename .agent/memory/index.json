@@ -6,11 +6,69 @@
       "type": "semantic",
       "scope": "project",
       "path": ".agent/memory/semantic/project-facts.md",
-      "summary": "Stable facts about the v0.4 agent-native template and its task-context workflow.",
-      "keywords": ["template", "project", "context", "compiler", "routes", "workflow"],
+      "summary": "Stable facts about the v0.5 agent-native template, task context, and evidence-backed memory.",
+      "keywords": [
+        "template",
+        "project",
+        "context",
+        "compiler",
+        "routes",
+        "workflow"
+      ],
       "confidence": "high",
-      "last_verified": "2026-08-15",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-09-23",
+      "source_task": ".agent/tasks/README.md",
+      "verification_record": ".agent/memory/verification/2026-09-23-token-efficiency.md",
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "4ee989da87bf6325cd2960052a778c6bd3fe4f14a04d3284ffa8c723fcbf441b"
+        },
+        {
+          "path": "CLAUDE.md",
+          "sha256": "d6ecf3578f3bf1cdd207c72c80f859b91db0ce1f2783ccb6fad19a53b834585e"
+        },
+        {
+          "path": "docs/agent/INDEX.md",
+          "sha256": "7e5b1c4d8fe385e13b4afbac40353f30466ff6ba13db25221f609f51729ffaac"
+        },
+        {
+          "path": "docs/agent/context-routes.json",
+          "sha256": "3b9e9c6a75c7b242ba84e436482d9284d910f8756ea95687fde1f347f52bd617"
+        },
+        {
+          "path": "scripts/task_context.py",
+          "sha256": "f56ae0e24073018f8f41f06e0a13c9c6d17c82d1948cd681f9e9f409818181dd"
+        },
+        {
+          "path": ".agent/tasks/README.md",
+          "sha256": "bf05511e4cae8ee5d6e68f86c6f7a3c0a530944726444b92c78bb70fb7cfbe24"
+        },
+        {
+          "path": "agentkit-manifest.json",
+          "sha256": "3a7a06e4af89b085c2027c0667e4c1d699f544a8dd2b561e502d557ceb3db87a"
+        },
+        {
+          "path": "docs/agent/CODEX_CUSTOMIZATION.md",
+          "sha256": "35aba3f716c4d3d50a3c29b0afaa13635455b09daea8cc2492b37eb518380c9e"
+        },
+        {
+          "path": "docs/agent/MEMORY_POLICY.md",
+          "sha256": "336752c8247cf8a0a6362c468e98fdb3dfc59f4dac9bd0d36c8aff0bd6549cd2"
+        },
+        {
+          "path": "docs/agent/RELIABILITY_EVALS.md",
+          "sha256": "f360da7c970a5b935005b5deb107419aa4e996ce64ae3a6e54fe8b7ec37229a7"
+        },
+        {
+          "path": "scripts/memory_lookup.py",
+          "sha256": "4e16c28abf2ad187dda5d909f529e5a6e0496ebd3373ca9c24a5f064ded33fa5"
+        },
+        {
+          "path": "docs/agent/MEMORY_RETRIEVAL.md",
+          "sha256": "8bba9f49858e1cb94f4a97cf1326363d8e2271ca9fc890e86c2522b3e8c815bc"
+        }
+      ]
     },
     {
       "id": "conventions",
@@ -18,10 +76,58 @@
       "scope": "project",
       "path": ".agent/memory/semantic/conventions.md",
       "summary": "Durable conventions for safe changes, task-context bundles, plan records, and verification.",
-      "keywords": ["conventions", "scope", "context", "routes", "plans", "upgrades", "tests", "docs"],
+      "keywords": [
+        "conventions",
+        "scope",
+        "context",
+        "routes",
+        "plans",
+        "upgrades",
+        "tests",
+        "docs"
+      ],
       "confidence": "high",
-      "last_verified": "2026-08-15",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-09-23",
+      "source_task": ".agent/tasks/README.md",
+      "verification_record": ".agent/memory/verification/2026-09-23-token-efficiency.md",
+      "evidence": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "4ee989da87bf6325cd2960052a778c6bd3fe4f14a04d3284ffa8c723fcbf441b"
+        },
+        {
+          "path": "docs/agent/CODE_SEARCH.md",
+          "sha256": "9f8df2057114d1744d19795f3a858e02da817d93606604bec2e9830c28cc6f93"
+        },
+        {
+          "path": "docs/agent/COMMAND_OUTPUT_POLICY.md",
+          "sha256": "16338564b82a9196d9879b8475311c05af3a8ed94d891635b3df56b9e6e49103"
+        },
+        {
+          "path": "docs/agent/MEMORY_POLICY.md",
+          "sha256": "336752c8247cf8a0a6362c468e98fdb3dfc59f4dac9bd0d36c8aff0bd6549cd2"
+        },
+        {
+          "path": "docs/agent/CODEX_CUSTOMIZATION.md",
+          "sha256": "35aba3f716c4d3d50a3c29b0afaa13635455b09daea8cc2492b37eb518380c9e"
+        },
+        {
+          "path": ".agents/skills/plan-evolution/SKILL.md",
+          "sha256": "e83a5ff945eedf7e439ffb3c2d727f14ec64450a610ab13c14fc7737a3de5d72"
+        },
+        {
+          "path": ".agent/plans/template.md",
+          "sha256": "ce2a229608ec73b79c4f91111fb6bfedf6e9d50d14fec4804ab2fce0be4246f6"
+        },
+        {
+          "path": ".agents/skills/task-context/SKILL.md",
+          "sha256": "8092424996afec104be86b0894d0ff920d9ebcb9180b5be3893114f764542715"
+        },
+        {
+          "path": "docs/agent/context-routes.json",
+          "sha256": "3b9e9c6a75c7b242ba84e436482d9284d910f8756ea95687fde1f347f52bd617"
+        }
+      ]
     },
     {
       "id": "decisions",
@@ -29,10 +135,53 @@
       "scope": "project",
       "path": ".agent/memory/semantic/decisions.md",
       "summary": "Durable decisions about the lightweight template and route-first Markdown context compiler.",
-      "keywords": ["decisions", "dependencies", "memory", "context", "routes", "semble", "template"],
+      "keywords": [
+        "decisions",
+        "dependencies",
+        "memory",
+        "context",
+        "routes",
+        "semble",
+        "template"
+      ],
       "confidence": "high",
-      "last_verified": "2026-08-15",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-09-23",
+      "source_task": ".agent/tasks/README.md",
+      "verification_record": ".agent/memory/verification/2026-09-23-token-efficiency.md",
+      "evidence": [
+        {
+          "path": "docs/agent/MEMORY_POLICY.md",
+          "sha256": "336752c8247cf8a0a6362c468e98fdb3dfc59f4dac9bd0d36c8aff0bd6549cd2"
+        },
+        {
+          "path": "docs/agent/MEMORY_PROMOTION_RULES.md",
+          "sha256": "c05ef475964ac3b9d6840de1351bef7f531b18dbf4474a7071d20a277e1360ab"
+        },
+        {
+          "path": "docs/adr/0003-codex-agent-system.md",
+          "sha256": "c8c1434c8445db5e317c2e54b776a1fb13af89dc2d56c32672b192d2803b8700"
+        },
+        {
+          "path": "docs/adr/0004-task-context-compiler.md",
+          "sha256": "2b8e294773b6d02fcceeab8dd252290f65a3dc4cbfd7d7db739feb6eed320549"
+        },
+        {
+          "path": "docs/agent/context-routes.json",
+          "sha256": "3b9e9c6a75c7b242ba84e436482d9284d910f8756ea95687fde1f347f52bd617"
+        },
+        {
+          "path": "agentkit-manifest.json",
+          "sha256": "3a7a06e4af89b085c2027c0667e4c1d699f544a8dd2b561e502d557ceb3db87a"
+        },
+        {
+          "path": "docs/agent/AGENTS_AND_SKILLS.md",
+          "sha256": "0158ba5e0c7e7358fc064ba0bcfe0337cb101cfa62c6702c2e950c56e1ebd9a6"
+        },
+        {
+          "path": "docs/adr/0005-measurable-reliability.md",
+          "sha256": "3352ccf5162396d7f52c0159723bddf304ffb17d00f0699e4c532d129564a58a"
+        }
+      ]
     },
     {
       "id": "debugging-playbooks",
@@ -40,10 +189,34 @@
       "scope": "debugging",
       "path": ".agent/memory/procedural/debugging-playbooks.md",
       "summary": "Reusable debugging workflow for reproducing, isolating, patching, and re-testing failures.",
-      "keywords": ["debugging", "tests", "failure", "workflow"],
+      "keywords": [
+        "debugging",
+        "tests",
+        "failure",
+        "workflow"
+      ],
       "confidence": "medium",
-      "last_verified": "2026-06-19",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-09-23",
+      "source_task": ".agent/tasks/README.md",
+      "verification_record": ".agent/memory/verification/2026-09-23-token-efficiency.md",
+      "evidence": [
+        {
+          "path": "docs/agent/INDEX.md",
+          "sha256": "7e5b1c4d8fe385e13b4afbac40353f30466ff6ba13db25221f609f51729ffaac"
+        },
+        {
+          "path": "docs/agent/COMMAND_OUTPUT_POLICY.md",
+          "sha256": "16338564b82a9196d9879b8475311c05af3a8ed94d891635b3df56b9e6e49103"
+        },
+        {
+          "path": ".agents/skills/test-debug-loop/SKILL.md",
+          "sha256": "bacb6c240ef5c7773ea0ea15bc7a53a0b0a8ef4ded82a940ef234e487a4f7b91"
+        },
+        {
+          "path": "Makefile",
+          "sha256": "8832012751597ab224c10ea80a18f138694907773022c084ec2227720b1bc97c"
+        }
+      ]
     },
     {
       "id": "testing-playbooks",
@@ -51,10 +224,38 @@
       "scope": "testing",
       "path": ".agent/memory/procedural/testing-playbooks.md",
       "summary": "Reusable testing workflow that prefers targeted checks before broad suites.",
-      "keywords": ["testing", "targeted", "lint", "typecheck"],
+      "keywords": [
+        "testing",
+        "targeted",
+        "lint",
+        "typecheck"
+      ],
       "confidence": "medium",
-      "last_verified": "2026-06-19",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-09-23",
+      "source_task": ".agent/tasks/README.md",
+      "verification_record": ".agent/memory/verification/2026-09-23-token-efficiency.md",
+      "evidence": [
+        {
+          "path": "Makefile",
+          "sha256": "8832012751597ab224c10ea80a18f138694907773022c084ec2227720b1bc97c"
+        },
+        {
+          "path": "scripts/run_targeted_tests.py",
+          "sha256": "42e6b691dcae37a26f946024bb96cd1a2be536f84c47f06ccbf42d36d335b512"
+        },
+        {
+          "path": "docs/agent/COMMAND_OUTPUT_POLICY.md",
+          "sha256": "16338564b82a9196d9879b8475311c05af3a8ed94d891635b3df56b9e6e49103"
+        },
+        {
+          "path": ".agents/skills/safe-implementation/SKILL.md",
+          "sha256": "af85af9c65c2bad0add31a2d8f963c1dd48c57a492167b41f27407a07b50732a"
+        },
+        {
+          "path": "docs/agent/RELIABILITY_EVALS.md",
+          "sha256": "f360da7c970a5b935005b5deb107419aa4e996ce64ae3a6e54fe8b7ec37229a7"
+        }
+      ]
     },
     {
       "id": "refactor-playbooks",
@@ -62,10 +263,34 @@
       "scope": "refactor",
       "path": ".agent/memory/procedural/refactor-playbooks.md",
       "summary": "Reusable refactor workflow for reading architecture context and checking references.",
-      "keywords": ["refactor", "architecture", "references", "serena"],
+      "keywords": [
+        "refactor",
+        "architecture",
+        "references",
+        "serena"
+      ],
       "confidence": "medium",
-      "last_verified": "2026-06-19",
-      "source_task": ".agent/tasks/README.md"
+      "last_verified": "2026-09-23",
+      "source_task": ".agent/tasks/README.md",
+      "verification_record": ".agent/memory/verification/2026-09-23-token-efficiency.md",
+      "evidence": [
+        {
+          "path": "docs/agent/ARCHITECTURE.md",
+          "sha256": "b3fc7e15c8d3fe5f3d1100631329d725544ce0de10e8b220d42331a172db50ec"
+        },
+        {
+          "path": "docs/agent/CODE_SEARCH.md",
+          "sha256": "9f8df2057114d1744d19795f3a858e02da817d93606604bec2e9830c28cc6f93"
+        },
+        {
+          "path": "docs/agent/CONTEXT_ROUTER.md",
+          "sha256": "7ee05c941b296d93bef8992811b5c0d79192e865ca5dfff3a28b916dc5308a26"
+        },
+        {
+          "path": "Makefile",
+          "sha256": "8832012751597ab224c10ea80a18f138694907773022c084ec2227720b1bc97c"
+        }
+      ]
     }
   ]
 }

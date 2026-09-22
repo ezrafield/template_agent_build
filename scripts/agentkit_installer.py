@@ -55,6 +55,13 @@ def iter_manifest_paths(
 def is_excluded(relative: str, patterns: list[str]) -> bool:
     normalized = relative.replace("\\", "/")
     for pattern in patterns:
+        # Project-local ownership is rooted at the destination repository.
+        # Managed fixture repositories may also contain src/ and docs/specs/.
+        if pattern.startswith("/"):
+            rooted = pattern[1:]
+            if (rooted.endswith("/") and normalized.startswith(rooted)) or fnmatch.fnmatch(normalized, rooted):
+                return True
+            continue
         if pattern.endswith("/"):
             directory_name = pattern.rstrip("/")
             if "/" not in directory_name and directory_name in PurePosixPath(normalized).parts:
@@ -64,6 +71,12 @@ def is_excluded(relative: str, patterns: list[str]) -> bool:
         if fnmatch.fnmatch(normalized, pattern):
             return True
     return False
+
+
+def exclusion_patterns(manifest: dict) -> list[str]:
+    return list(manifest.get("excluded_files", [])) + [
+        "/" + path.lstrip("/") for path in manifest.get("project_local_files", [])
+    ]
 
 
 def backup_existing(target_root: Path, relative: Path, backup_root: Path) -> None:
@@ -260,7 +273,7 @@ def check(source: Path, target: Path) -> int:
     installed_state = read_installed_state(target)
     is_installed_target = source.resolve() != target.resolve() or bool(installed_state)
     if is_installed_target:
-        excluded = manifest.get("excluded_files", []) + manifest.get("project_local_files", [])
+        excluded = exclusion_patterns(manifest)
         expected = [
             path.relative_to(source).as_posix()
             for path in iter_manifest_paths(
@@ -304,7 +317,7 @@ def install(mode: str, source: Path, target: Path) -> None:
     backup_root = target / ".agentkit" / "backups" / datetime.now().strftime("%Y%m%d-%H%M%S-%f")
     previous = read_installed_state(target)
     installed: list[str] = []
-    excluded = manifest.get("excluded_files", []) + manifest.get("project_local_files", [])
+    excluded = exclusion_patterns(manifest)
 
     for source_file in iter_manifest_paths(
         source,

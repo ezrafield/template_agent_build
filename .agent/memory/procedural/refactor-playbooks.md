@@ -3,8 +3,9 @@
 Type: procedural
 Scope: refactor
 Confidence: medium
-Last verified: 2026-06-19
+Last verified: 2026-09-23
 Source task: .agent/tasks/README.md
+Verification record: .agent/memory/verification/2026-09-23-token-efficiency.md
 
 ## When to use
 
@@ -12,7 +13,7 @@ Use this memory before refactors, renames, or changes that cross module boundari
 
 ## Procedure
 
-1. Read `docs/agent/ARCHITECTURE.md` and the relevant module cards.
+1. Reuse an inspected current task-context bundle or build one; refresh changed context, then read `docs/agent/ARCHITECTURE.md` and relevant module cards.
 2. Use Semble for natural-language discovery when available.
 3. Use `rg` for exact symbols and paths.
 4. Use Serena when references, declarations, diagnostics, or safe renames need language-server semantics.
@@ -31,6 +32,7 @@ make test-unit
 - `docs/agent/ARCHITECTURE.md`
 - `docs/agent/CODE_SEARCH.md`
 - `docs/agent/CONTEXT_ROUTER.md`
+- `Makefile`
 
 ## Staleness triggers
 

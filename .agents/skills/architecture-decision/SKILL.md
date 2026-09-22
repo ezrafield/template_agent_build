@@ -5,7 +5,7 @@ description: Compare consequential technical options and record a durable decisi
 
 # Architecture Decision
 
-1. Run `python scripts/task_context.py build "<task>" --route architecture-decision` and review its gaps.
+1. Reuse an inspected current `architecture-decision` bundle under `AGENTS.md` freshness rules, or run `python scripts/task_context.py build "<task>" --route architecture-decision` and inspect its compact view.
 2. State the decision, constraints, non-goals, and compatibility requirements.
 3. Compare two or three practical options against those constraints.
 4. Recommend the simplest option that satisfies the requirements.

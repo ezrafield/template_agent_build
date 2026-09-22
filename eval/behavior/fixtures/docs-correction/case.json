@@ -1,0 +1,7 @@
+{
+  "id": "docs-correction",
+  "request": "Correct docs/usage.md using current src/cli.py as the source of truth. Document the actual default limit, inclusive valid range, JSON default output format, and a valid example using the current --limit flag. Preserve the explanation of offline operation.",
+  "permitted_changes": [
+    "docs/usage.md"
+  ]
+}

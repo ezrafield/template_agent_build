@@ -1,0 +1,8 @@
+{
+  "id": "stale-memory",
+  "request": "Fix the cache expiry regression according to docs/cache-contract.md and the current clock contract. Review .agent/memory/semantic/cache-policy.md and cache-policy-copy.md, which may conflict with current source and duplicate each other. Do not promote or change these cards. Write a concise proposed correction and deduplication recommendation to docs/memory-correction.md citing the authoritative contract.",
+  "permitted_changes": [
+    "src/cache.py",
+    "docs/memory-correction.md"
+  ]
+}

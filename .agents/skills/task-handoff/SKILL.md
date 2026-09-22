@@ -6,9 +6,11 @@ description: Capture concise, reusable state for a multi-step task that is pausi
 # Task Handoff
 
 1. Create or update the task note under `.agent/tasks/`.
-2. Record the goal, user request, assumptions, context read, files inspected or changed, and commands run.
-3. Separate completed work from unresolved work and include verification status.
-4. Record blockers, risks, and the next concrete action.
+2. Link existing plan goals, assumptions, and verification; record only new state, relevant context, changed files, and checks needed to resume.
+3. Include a checkpoint: linked plan, completed acceptance criteria, outstanding findings, verified revision (and dirty-file state), checks/results, and next action. Record external effects already performed so they are not repeated.
+4. Include blockers and risks in that checkpoint; avoid repeating the same next action or verification in multiple sections.
 5. Keep temporary task state out of semantic and procedural memory until it is reviewed for promotion.
 
 Use factual paths and commands. Keep the handoff concise enough for another agent to resume without rereading the full conversation.
+On resume, compare the checkpoint with current files before relying on prior
+verification; rerun the smallest affected check when the relevant state changed.

@@ -6,7 +6,7 @@ description: Reproduce, isolate, fix, and re-test a failing test or runtime erro
 # Test Debug Loop
 
 1. Run the smallest failing test or deterministic reproduction.
-2. For a non-trivial failure, run `python scripts/task_context.py build "<task>" --route bug-fix` and review its gaps.
+2. For a non-trivial failure, reuse an inspected current `bug-fix` bundle under `AGENTS.md` freshness rules, or run `python scripts/task_context.py build "<task>" --route bug-fix` and inspect its compact view.
 3. Preserve the complete actionable error and identify the first relevant failure.
 4. Form one root-cause hypothesis and verify it against current code.
 5. Apply the smallest correction that addresses that cause.

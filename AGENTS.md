@@ -20,9 +20,9 @@ This agent-native template demonstrates progressive context, skills, determinist
 ## Default Workflow
 
 1. Understand the task and keep its scope explicit.
-2. Read `docs/agent/INDEX.md`, then build and inspect a task-context bundle for non-trivial work with `python scripts/task_context.py build "<task>"`.
-3. Review warnings, gaps, hashes, selections, and drops; routes are authoritative and Semble is advisory.
-4. Check `.agent/memory/index.json` for relevant guidance, then verify memory and generated excerpts against current files.
+2. Reuse an inspected current bundle, or route through `docs/agent/INDEX.md` and run `python scripts/task_context.py build "<task>"` for non-trivial work.
+3. Inspect compact warnings, gaps, and sources; open the full audit when needed. Routes are authoritative; Semble is advisory.
+4. Query memory with `python scripts/memory_lookup.py "<task>"`; verify relevant cards against current source.
 5. Before full-file reads, use `rg` for exact checks and symbol tools for references or refactors.
 6. Before editing, identify the selected files, why they matter, and the main uncertainty or risk.
 7. Make the smallest safe change and update tests or docs when behavior changes.
@@ -32,7 +32,8 @@ This agent-native template demonstrates progressive context, skills, determinist
 ## Context Rules
 
 - Do not scan the whole repository unless the task requires it.
-- Prefer the task-context bundle, module cards, targeted reads, and deterministic scripts over broad context loading.
+- Reuse read context for the same task and route; rebuild when relevant sources or requested ranges change.
+- Prefer compact bundles, module cards, targeted reads, and deterministic scripts over broad context loading.
 - Treat generated bundles as disposable ignored cache data; never promote them automatically into task logs or memory.
 - Treat memory and generated knowledge graphs as navigation aids, not source of truth.
 - Keep output compact; rerun the smallest failing command raw when unclear.

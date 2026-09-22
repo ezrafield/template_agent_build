@@ -5,14 +5,21 @@ coding agents such as Codex, Claude Code, and similar tools.
 
 The core idea is progressive context loading: keep auto-loaded instructions
 short, route agents through a small index, and compile richer task context only
-when the work needs it. Version 0.4.0 adds an inspectable Markdown task-context
-compiler, ten discoverable Codex skills, unified agent-asset validation,
+when the work needs it. Version 0.5.0 adds behavioral evaluations, memory evidence,
+bounded context expansion, independent review, and optional Jev shadow advice.
+It retains ten discoverable skills, deterministic context and validation,
 upgrade-safe installer ownership, and opt-in local hooks and command rules.
 
 The memory layer is inspired by PlugMem's semantic, procedural, and episodic
 taxonomy, but stays dependency-free: Markdown cards, a JSON index, and small
 deterministic Python scripts. It does not require embeddings, a graph database,
 an API key, or a model server.
+
+Reliability checks are offline by default: `make behavior-eval` validates six
+task fixtures and their reference solutions; `make advice-eval` validates Jev
+experiment labels. Live comparisons require explicit invocation. Jev is optional
+and records advice only. See [reliability evaluations](docs/agent/RELIABILITY_EVALS.md)
+for commands, limits, and interpreting results. Live effectiveness is **not yet measured**.
 
 ## How Agents Use It
 
@@ -171,15 +178,17 @@ scaffolding exists, runs validation, and smoke-tests the task-context compiler.
 
 ## Task Context Compiler
 
-The v0.4 compiler selects a deterministic route from
+The compiler selects a deterministic route from
 `docs/agent/context-routes.json`, reads required routed sources first, and may
 append locally re-read Semble results when the optional tool is available. It
-writes one atomic Markdown artifact per normalized task under the ignored
-`.agent/context-cache/task-context/` directory. Source files remain
-authoritative; bundles are disposable and are never promoted automatically.
+writes a full Markdown audit and a compact `.read.md` companion under the ignored
+`.agent/context-cache/task-context/` directory. Default reading output is bounded
+including metadata; required context precedes optional excerpts. Source files
+remain authoritative; bundles are disposable and are never promoted automatically.
 
 ```bash
 python scripts/task_context.py build "review the authentication change" --stdout
+python scripts/task_context.py build "review the authentication change" --view full
 python scripts/task_context.py explain "review the authentication change"
 make task-context TASK="review the authentication change"
 make task-context-explain TASK="review the authentication change"
@@ -189,7 +198,12 @@ make task-context-eval
 Use `--route <id>` only when the deterministic classification is not the route
 you intend, and `--no-search` for a route-only build. Missing optional search,
 blocked reads, gaps, and truncation are recorded as warnings without making a
-successfully rendered bundle fail.
+successfully rendered bundle fail. If required context and mandatory diagnostics
+cannot fit the compact budget, an explicit error directs inspection of the full
+audit. Reuse inspected context across skills while the task, route, ranges, and
+relevant sources are unchanged. Query memory with
+`python scripts/memory_lookup.py "task"` to read summaries and evidence status
+without loading fingerprint lists.
 
 ## Codex Guardrails
 
@@ -261,10 +275,11 @@ make detect-large-context-docs
 Use audits as warnings during setup and stricter gates before sharing the kit
 with a team.
 
-`make skill-routing-eval` runs an authenticated, read-only Codex routing corpus
-and reports precision, recall, forbidden activations, and collisions. It is
-observational rather than a pull-request gate until repeated runs establish a
-stable baseline.
+`make skill-routing-eval` validates its routing corpus offline. Live measurements
+require `python eval/skills/run_skill_routing_eval.py --live --model MODEL` and
+report precision, recall, forbidden activations, and collisions. These remain
+informational until repeated runs establish a stable baseline; use `--limit 3`
+for a smaller live sample.
 
 ## Source Understanding
 

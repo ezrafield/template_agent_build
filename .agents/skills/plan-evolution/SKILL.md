@@ -10,7 +10,7 @@ may coordinate execution, but they do not replace the file.
 
 ## Workflow
 
-1. For a non-trivial plan, run `python scripts/task_context.py build "<task>"` and review its route and gaps.
+1. For a non-trivial plan, reuse the inspected current task bundle under `AGENTS.md` freshness rules, or run `python scripts/task_context.py build "<task>"` and inspect its compact view.
 2. Search `.agent/plans/{active,backlog,completed}/` for an existing record.
 3. Before substantive execution, create a missing record from
    `.agent/plans/template.md`. Use `YYYY-MM-DD-short-name.md` in `active/`, or

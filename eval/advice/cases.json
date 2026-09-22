@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "label_source": "Reviewed against the repository route and skill contracts for v0.5; synthetic tasks, not production observations.",
+  "cases": [
+    {"id": "bug-paraphrase", "task": "The parser crashes on an empty input. Reproduce it and repair that behavior.", "route": "bug-fix", "skills": ["test-debug-loop", "safe-implementation"], "clarification": false},
+    {"id": "review-paraphrase", "task": "Inspect this proposed diff for correctness and regression risks. Report findings without editing.", "route": "code-review", "skills": ["code-review"], "clarification": false},
+    {"id": "memory-conflict", "task": "Audit conflicting memory cards against current source and propose which guidance to retire.", "route": "memory-maintenance", "skills": ["memory-maintenance"], "clarification": false},
+    {"id": "mixed-api-bug", "task": "Fix the existing API endpoint's failing request-validation test. Keep the public contract unchanged.", "route": "bug-fix", "skills": ["safe-implementation", "test-debug-loop"], "clarification": false},
+    {"id": "context-explanation", "task": "Explain why the task-context bundle selected these documents and dropped the others. Do not edit.", "route": "source-understanding", "skills": ["task-context"], "clarification": false},
+    {"id": "architecture", "task": "Compare a database-backed memory service with the current local Markdown design and recommend an architecture.", "route": "architecture-decision", "skills": ["architecture-decision"], "clarification": false},
+    {"id": "ambiguous", "task": "Change it to the other one.", "route": "insufficient_information", "skills": [], "clarification": true},
+    {"id": "out-of-scope", "task": "Write a birthday poem about a friendly dragon.", "route": "out_of_scope", "skills": [], "clarification": false}
+  ]
+}

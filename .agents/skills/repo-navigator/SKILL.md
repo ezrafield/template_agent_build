@@ -5,9 +5,9 @@ description: Locate the smallest relevant set of code, tests, documentation, and
 
 # Repository Navigation
 
-1. For non-trivial work, run `python scripts/task_context.py build "<task>"` and review its warnings, gaps, and selected sources.
+1. Reuse the inspected current task bundle under `AGENTS.md` freshness rules; otherwise run `python scripts/task_context.py build "<task>"` for non-trivial work and inspect its compact view.
 2. Read `docs/agent/INDEX.md` and confirm the selected route is appropriate.
-3. Check the matching codemap or module card and relevant verified memory.
+3. Check the matching codemap or module card and query relevant memory with `python scripts/memory_lookup.py "<task>"`; verify useful cards against current source.
 4. Use Semble for natural-language discovery when available, then confirm exact paths and symbols with `rg`.
 5. Use Serena only when declarations, references, diagnostics, or refactor-safe symbol information materially helps.
 6. Read full files only after retrieval identifies likely targets.

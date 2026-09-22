@@ -5,13 +5,13 @@ Use this project as an agent-native codebase.
 ## Start Here
 For every non-trivial task:
 1. Read `docs/agent/INDEX.md`.
-2. Build and inspect a task-context bundle with `python scripts/task_context.py build "<task>"`.
-3. Review route warnings, gaps, hashes, selected sources, and dropped-source reasons.
-4. Check `.agent/memory/index.json` for relevant semantic or procedural memory.
+2. Reuse an inspected current bundle, or build one with `python scripts/task_context.py build "<task>"`. Rebuild when the task, route, requested ranges, or relevant sources change.
+3. Read compact warnings, gaps, and sources; open the full audit only for detailed inspection.
+4. Query relevant memory with `python scripts/memory_lookup.py "<task>"`.
 5. Verify memory and generated excerpts against current code, tests, and docs before relying on them.
 6. Read full relevant sources only when the bundle or exact retrieval identifies them.
 7. Before executing any plan, roadmap, strategy change, migration, or version upgrade, create or update a Markdown record under `.agent/plans/` from `.agent/plans/template.md`.
-8. Create or update a task note in `.agent/tasks/` if the task has more than one step.
+8. For work with multiple steps, use a concise task checkpoint in `.agent/tasks/` when the plan does not already capture the needed state; link shared goals and checks instead of duplicating them.
 
 ## Plan Evolution
 

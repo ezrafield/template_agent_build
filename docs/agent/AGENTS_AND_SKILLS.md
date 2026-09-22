@@ -35,6 +35,17 @@ workflow without storing secrets or hidden chain-of-thought.
 
 ## Progressive Disclosure
 
+For changes spanning multiple modules' behavior or public contracts, use the
+existing implementation and review skills with observable acceptance criteria
+and an independent reviewer. See [RELIABILITY_EVALS.md](RELIABILITY_EVALS.md).
+No additional mandatory skill or always-running reviewer is installed.
+
+Skill activation reuses already-inspected context for the same task and route.
+Refresh when relevant sources or requested ranges change. Read compact bundles
+and memory lookup results first; keep full audit details available on demand.
+Give independent reviewers focused criteria, diffs, and check evidence. Link
+plan/checkpoint content rather than copying it into multiple logs.
+
 - Put all activation conditions in the skill description because Codex sees it
   before loading the body.
 - Keep one primary job per skill and keep `SKILL.md` below 4 KiB.
@@ -61,7 +72,7 @@ copy-if-missing memory, or unrecorded project files.
 
 Claude Code subagent templates remain under `.claude/agents/`, and optional
 hook examples remain under `.claude/hooks/`. Codex skill discovery,
-task-context bundles, and runtime guardrails are the v0.4 primary target;
+task-context bundles, and runtime guardrails are the v0.5 primary target;
 behavioral parity is not implied.
 
 ## Long-Term Memory

@@ -33,10 +33,14 @@ execution plan, or material upgrade must have a durable Markdown record under
 `.agent/plans/`. The file carries the strategy hypothesis through observed
 evidence and retrospective learning; in-chat plans are not the audit record.
 
-`task-context` exposes the v0.4 context compiler. Its JSON manifest keeps route
+`task-context` exposes the context compiler. Its JSON manifest keeps route
 classification and ordered source requirements machine-checkable, while its
 Markdown output keeps selection, provenance, warnings, and excerpts directly
 inspectable. The compiler does not install an automatic prompt hook.
+Default reading uses compact Markdown; full provenance remains in the audit
+artifact. Reuse inspected context while its task, route, ranges, and relevant
+sources are unchanged. Memory lookup shows summaries and evidence status without
+loading fingerprint lists into the prompt.
 
 ## Opt-In Hooks and Rules
 
@@ -79,11 +83,19 @@ permissions, approvals, and hooks.
 - `make task-context-eval`: deterministic, route-complete golden context fixtures
   with optional Semble disabled.
 - `python eval/agent/run_hook_eval.py`: deterministic hook behavior fixtures.
-- `make skill-routing-eval`: authenticated, non-gating routing measurements.
+- `make skill-routing-eval`: offline routing fixture validation. Live non-gating
+  measurements require `python eval/skills/run_skill_routing_eval.py --live --model MODEL`.
+- `make behavior-eval`: offline fixture/reference validation; matched live task
+  trials require explicit CLI flags and an authenticated runtime.
+- `make advice-eval`: offline Jev label validation; API experiments require
+  explicit `--live` and a key. Advice never changes runtime behavior.
 
 The routing corpus reports precision, recall, forbidden activations, and
 collision rate. It remains observational until repeated runs establish a stable
 baseline.
+
+See [RELIABILITY_EVALS.md](RELIABILITY_EVALS.md) for v0.5 trial isolation,
+failure accounting, independent review, and the limits of effectiveness claims.
 
 ## Official References
 

@@ -20,6 +20,8 @@ jobs:
       - run: python scripts/validate_agent_assets.py
       - run: python -m pytest tests/agent -q
       - run: python eval/context/run_task_context_eval.py
+      - run: python eval/behavior/run_behavior_eval.py
+      - run: python eval/advice/run_advice_eval.py
       - run: python eval/agent/run_hook_eval.py
       - run: python eval/skills/run_skill_routing_eval.py --validate-only
       - run: python scripts/check_codex_runtime.py

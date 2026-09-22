@@ -3,8 +3,9 @@
 Type: semantic
 Scope: project
 Confidence: high
-Last verified: 2026-08-15
+Last verified: 2026-09-23
 Source task: .agent/tasks/README.md
+Verification record: .agent/memory/verification/2026-09-23-token-efficiency.md
 
 ## When to use
 
@@ -13,13 +14,16 @@ Use this memory when orienting on the template's purpose and baseline workflow.
 ## Content
 
 - This repository is an agent-native project template for Codex, Claude Code, and similar coding agents.
-- Agents should start with `AGENTS.md` or `CLAUDE.md`, then compile and inspect a task-specific Markdown bundle for non-trivial work.
+- Agents start with `AGENTS.md` or `CLAUDE.md`, then reuse an inspected current bundle or compile task-specific Markdown for non-trivial work.
 - `.agent/tasks/` is episodic memory: task-local notes and audit trails.
 - `.agent/memory/` is long-term semantic and procedural memory that must be verified before use.
-- The Codex-first v0.4 catalog contains ten discoverable skills under `.agents/skills/`.
+- The Codex-first v0.5 catalog contains ten discoverable skills under `.agents/skills/`.
 - `docs/agent/context-routes.json` is the validated route source; `INDEX.md` is its synchronized human explanation.
 - Task bundles are reproducible ignored cache files under `.agent/context-cache/task-context/`, not authoritative memory.
 - Active Codex hooks and command rules are machine-local opt-in files generated from `.codex/templates/`.
+- Memory index version 1 accepts existing entries without evidence as untracked; new or re-verified entries record reviewed source fingerprints.
+- `scripts/memory_lookup.py` provides compact summaries, paths, and current evidence status; full fingerprints remain available to validators.
+- Reliability evaluations measure explicit task outcomes; live effectiveness remains unmeasured until matched live trials run.
 
 ## Related files
 
@@ -28,9 +32,13 @@ Use this memory when orienting on the template's purpose and baseline workflow.
 - `docs/agent/INDEX.md`
 - `docs/agent/context-routes.json`
 - `scripts/task_context.py`
+- `scripts/memory_lookup.py`
+- `docs/agent/MEMORY_RETRIEVAL.md`
 - `.agent/tasks/README.md`
 - `agentkit-manifest.json`
 - `docs/agent/CODEX_CUSTOMIZATION.md`
+- `docs/agent/MEMORY_POLICY.md`
+- `docs/agent/RELIABILITY_EVALS.md`
 
 ## Staleness triggers
 

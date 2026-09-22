@@ -58,6 +58,8 @@ REQUIRED_FILES = {
     "docs/agent/CODEX_CUSTOMIZATION.md",
     "docs/adr/0003-codex-agent-system.md",
     "docs/adr/0004-task-context-compiler.md",
+    "docs/adr/0005-measurable-reliability.md",
+    "docs/agent/RELIABILITY_EVALS.md",
     "docs/agent/TOOLS.md",
     "docs/agent/MCPS.md",
     "docs/agent/MEMORY_POLICY.md",
@@ -73,6 +75,11 @@ REQUIRED_FILES = {
     "scripts/run_agent_hook.py",
     "scripts/task_context.py",
     "scripts/task_context_engine.py",
+    "scripts/decision_advice.py",
+    "scripts/memory_lookup.py",
+    "eval/behavior/run_behavior_eval.py",
+    "eval/advice/run_advice_eval.py",
+    "eval/advice/cases.json",
     "eval/context/golden_tasks.json",
     "eval/context/run_task_context_eval.py",
 }
@@ -102,7 +109,7 @@ def should_skip_directory(path: Path, root: Path) -> bool:
     if path.name in IGNORED_DIRECTORY_NAMES:
         return True
     rel = relative(path, root) if path != root else ""
-    return rel.startswith(".agent/context-cache") or rel.startswith("tools/agent/") and any(
+    return rel.startswith((".agent/context-cache", ".agent/traces")) or rel.startswith("tools/agent/") and any(
         part in {".venv", "node_modules", ".uv-cache", ".npm-cache", ".hf-cache", "bin"}
         for part in path.parts
     )
@@ -283,8 +290,8 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
 
     if manifest.get("schema_version") != 2:
         report.error("agentkit-manifest.json must use schema_version 2.")
-    if manifest.get("version") != "0.4.0":
-        report.error("agentkit-manifest.json must declare version 0.4.0.")
+    if manifest.get("version") != "0.5.0":
+        report.error("agentkit-manifest.json must declare version 0.5.0.")
 
     runtime = manifest.get("runtime")
     if not isinstance(runtime, dict):
@@ -307,6 +314,8 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
         for required_ci_command in (
             "python -m pytest tests/agent -q",
             "python eval/context/run_task_context_eval.py",
+            "python eval/behavior/run_behavior_eval.py",
+            "python eval/advice/run_advice_eval.py",
         ):
             if required_ci_command not in workflow_text:
                 report.error(f"Agent CI must run `{required_ci_command}`.")
@@ -335,7 +344,7 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
         if path_value != expected_path:
             report.error(f"Skill {name} path must be {expected_path}.")
         if entry.get("required") is not True:
-            report.error(f"Skill {name} must be marked required in v0.4.0.")
+            report.error(f"Skill {name} must be marked required in v0.5.0.")
         if entry.get("hosts") != ["codex"]:
             report.error(f"Skill {name} must declare hosts [\"codex\"].")
         for field_name in ("required_commands", "optional_commands"):

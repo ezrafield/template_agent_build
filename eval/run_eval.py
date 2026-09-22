@@ -11,6 +11,9 @@ def main() -> int:
         [sys.executable, "scripts/validate_agent_assets.py"],
         [sys.executable, "eval/agent/run_hook_eval.py"],
         [sys.executable, "eval/skills/run_skill_routing_eval.py", "--validate-only"],
+        [sys.executable, "eval/context/run_task_context_eval.py"],
+        [sys.executable, "eval/behavior/run_behavior_eval.py"],
+        [sys.executable, "eval/advice/run_advice_eval.py"],
     ]
     failures: list[str] = []
     for command in commands:

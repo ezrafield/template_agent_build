@@ -1,10 +1,19 @@
 QUERY ?=
+.DEFAULT_GOAL := install
 CONTENT ?= code
 PATTERN ?=
 LANG ?= python
 REPOMIX_ARGS ?= .
 ROUTE ?=
 TASK_CONTEXT_ROUTE_ARG = $(if $(ROUTE),--route "$(ROUTE)",)
+
+.PHONY: behavior-eval advice-eval
+
+behavior-eval:
+	python eval/behavior/run_behavior_eval.py
+
+advice-eval:
+	python eval/advice/run_advice_eval.py
 
 .PHONY: install agent-tools-install agent-tools-check agent-kit-check dev test test-unit test-integration lint typecheck docs-map agent-setup validate-docs validate-agent-docs validate-agent-assets codex-guardrails-enable codex-runtime-check skill-routing-eval task-context task-context-explain task-context-eval detect-large-context-docs detect-large-agent-files check-context-staleness audit-module-cards audit-task-logs validate-memory-links audit-memory-staleness audit-memory check-architecture-boundaries update-module-cards targeted-tests task-trace extract-task-memory code-search repomix ast-grep rtk-gain git-status git-diff test-unit-compact lint-compact typecheck-compact understand understand-dashboard understand-search validate-understand-graph retrieval-eval
 

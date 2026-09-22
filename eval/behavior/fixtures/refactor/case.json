@@ -1,0 +1,7 @@
+{
+  "id": "refactor",
+  "request": "Refactor duplicate invoice/subscription discount calculations into a shared discount_cents(cents, percent) helper in src/pricing.py. Preserve existing integer floor rounding, signatures, and results, including negative adjustments.",
+  "permitted_changes": [
+    "src/pricing.py"
+  ]
+}

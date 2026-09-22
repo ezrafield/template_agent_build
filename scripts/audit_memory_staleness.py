@@ -1,87 +1,80 @@
-import json
-import re
+import argparse
 from datetime import date
 from pathlib import Path
-from typing import Any
+
+try:
+    from scripts.memory_evidence import EvidenceError, inspect_evidence, read_source, safe_path
+    from scripts.validate_memory_links import as_path, legacy_relative, load_index, related_files
+except ImportError:  # direct script execution
+    from memory_evidence import EvidenceError, inspect_evidence, read_source, safe_path
+    from validate_memory_links import as_path, legacy_relative, load_index, related_files
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX = ROOT / ".agent" / "memory" / "index.json"
 MAX_AGE_DAYS = 180
 
 
-def load_index() -> dict[str, Any]:
-    if not INDEX.exists():
-        raise SystemExit(f"Missing memory index: {INDEX.relative_to(ROOT).as_posix()}")
-    return json.loads(INDEX.read_text(encoding="utf-8"))
-
-
-def as_path(relative: str) -> Path:
-    return ROOT / relative
-
-
-def related_files(text: str) -> list[str]:
-    match = re.search(r"^## Related files\s*$", text, flags=re.MULTILINE)
-    if not match:
-        return []
-    start = match.end()
-    next_match = re.search(r"^## .+$", text[start:], flags=re.MULTILINE)
-    end = start + next_match.start() if next_match else len(text)
-    section = text[start:end]
-    paths = []
-    for line in section.splitlines():
-        stripped = line.strip()
-        if not stripped.startswith("- "):
-            continue
-        value = stripped[2:].strip().strip("`")
-        if value and not value.startswith("TODO"):
-            paths.append(value)
-    return paths
-
-
-def main() -> None:
-    today = date.today()
+def audit(root: Path = ROOT, today: date | None = None) -> tuple[list[str], list[str]]:
+    today = today or date.today()
     warnings: list[str] = []
-    data = load_index()
+    statuses: list[str] = []
+    try:
+        data = load_index(root)
+    except (EvidenceError, OSError, ValueError) as exc:
+        return [f"Cannot read memory index: {exc}"], statuses
     memories = data.get("memories", [])
     if not isinstance(memories, list):
-        raise SystemExit("index memories must be a list")
+        return ["index memories must be a list"], statuses
 
     for entry in memories:
         if not isinstance(entry, dict):
             warnings.append("memory entry is not an object")
             continue
         entry_id = entry.get("id", "<missing id>")
-        last_verified = entry.get("last_verified")
+        issues: list[str] = []
         try:
-            verified_date = date.fromisoformat(last_verified)
+            verified_date = date.fromisoformat(entry.get("last_verified"))
+            age_days = (today - verified_date).days
+            if age_days > MAX_AGE_DAYS:
+                issues.append(f"last verified {age_days} days ago")
+            elif age_days < 0:
+                issues.append("last_verified is in the future")
         except (TypeError, ValueError):
-            warnings.append(f"{entry_id}: invalid last_verified date: {last_verified}")
-            continue
-        age_days = (today - verified_date).days
-        if age_days > MAX_AGE_DAYS:
-            warnings.append(f"{entry_id}: last verified {age_days} days ago")
+            issues.append(f"invalid last_verified date: {entry.get('last_verified')}")
 
-        path_value = entry.get("path")
-        if not isinstance(path_value, str):
-            warnings.append(f"{entry_id}: missing card path")
-            continue
-        card_path = as_path(path_value)
-        if not card_path.exists():
-            warnings.append(f"{entry_id}: missing card {path_value}")
-            continue
-        text = card_path.read_text(encoding="utf-8")
-        for related in related_files(text):
-            if not as_path(related).exists():
-                warnings.append(f"{entry_id}: related file no longer exists: {related}")
+        try:
+            text = read_source(root, legacy_relative(entry.get("path")))
+            for related in related_files(text):
+                if not as_path(related, root).is_file():
+                    issues.append(f"related file no longer exists: {related}")
+        except (EvidenceError, OSError) as exc:
+            issues.append(str(exc))
 
+        evidence = inspect_evidence(root, entry)
+        status = evidence.status
+        if status not in {"unchanged", "untracked"}:
+            issues.extend(evidence.details)
+        elif issues:
+            status = "needs-reverification"
+        statuses.append(f"{entry_id}: {status}")
+        warnings.extend(f"{entry_id}: {issue}" for issue in issues)
+    return warnings, statuses
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Check memory age, missing sources, and evidence drift.")
+    parser.add_argument("--root", type=Path, default=ROOT)
+    args = parser.parse_args(argv)
+    warnings, statuses = audit(args.root)
+    for status in statuses:
+        print(status)
+    for warning in warnings:
+        print(warning)
     if warnings:
-        for warning in warnings:
-            print(warning)
-        raise SystemExit(1)
-
-    print("Promoted memory cards are not stale and related files still exist.")
+        return 1
+    print("Memory audit passed; untracked entries still require manual source verification.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

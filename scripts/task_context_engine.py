@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import uuid
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -57,7 +58,17 @@ STOP_WORDS = {
     "to",
     "we",
     "with",
+    # Workflow vocabulary identifies a route, not a concrete optional source.
+    "add", "build", "bug", "bugs", "change", "changes", "check", "checks",
+    "code", "current", "existing", "fail", "failed", "failing", "failure",
+    "failures", "feature", "fix", "implement", "implementation", "improve",
+    "new", "read", "refactor", "regression", "request", "review", "task",
+    "test", "tests", "testing", "update", "work",
+    "explain", "find", "inspect", "investigate", "understand", "please",
+    "empty", "error", "errors", "input", "output", "invalid",
 }
+OPTIONAL_EXCERPT_CHARS = 6000
+OPTIONAL_EXCERPT_LINES = 100
 
 URL_CREDENTIAL_RE = re.compile(r"https?://[A-Za-z0-9._%+-]+:[^@\s]+@")
 SECRET_ASSIGNMENT_RE = re.compile(
@@ -98,6 +109,7 @@ class Candidate:
     start_line: int | None = None
     end_line: int | None = None
     search_score: float = 0.0
+    line_ranges: list[tuple[int, int]] = field(default_factory=list)
 
 
 @dataclass
@@ -113,6 +125,8 @@ class PreparedSource:
     redactions: dict[str, int]
     group: str | None = None
     group_limit: int | None = None
+    line_ranges: list[tuple[int, int]] = field(default_factory=list)
+    compact_excerpt: str | None = None
 
 
 @dataclass
@@ -127,6 +141,8 @@ class SelectedSource:
     selection_reason: str
     redactions: dict[str, int]
     truncated: bool = False
+    line_ranges: list[tuple[int, int]] = field(default_factory=list)
+    compact_excerpt: str | None = None
 
     @property
     def char_count(self) -> int:
@@ -157,6 +173,8 @@ class BuildResult:
     warnings: list[str]
     gaps: list[str]
     task_redactions: dict[str, int] = field(default_factory=dict)
+    expansion_reason: str = ""
+    expansion_notes: list[str] = field(default_factory=list)
 
     @property
     def selected_chars(self) -> int:
@@ -217,9 +235,12 @@ def _safe_resolve(root: Path, raw_path: str) -> tuple[Path | None, str | None]:
     root_resolved = root.resolve()
     candidate = (root_resolved / relative).resolve()
     try:
-        candidate.relative_to(root_resolved)
+        resolved_relative = candidate.relative_to(root_resolved).as_posix()
     except ValueError:
         return None, "path resolves outside the repository"
+    resolved_secret = _secret_reason(resolved_relative)
+    if resolved_secret:
+        return None, f"resolved path has {resolved_secret}"
     return candidate, None
 
 
@@ -274,6 +295,80 @@ def slice_sections(text: str, requested: Iterable[str]) -> tuple[str, list[str],
     if not selected:
         return text.strip(), ["all"], missing
     return "\n\n".join(selected), used, missing
+
+
+def _merge_ranges(ranges: Iterable[tuple[int, int]]) -> list[tuple[int, int]]:
+    merged: list[tuple[int, int]] = []
+    for start, end in sorted(ranges):
+        if merged and start <= merged[-1][1] + 1:
+            merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+        else:
+            merged.append((start, end))
+    return merged
+
+
+def _uncovered_ranges(
+    ranges: list[tuple[int, int]], covered: list[tuple[int, int]]
+) -> list[tuple[int, int]]:
+    remaining = ranges
+    for covered_start, covered_end in _merge_ranges(covered):
+        next_ranges: list[tuple[int, int]] = []
+        for start, end in remaining:
+            if end < covered_start or start > covered_end:
+                next_ranges.append((start, end))
+            else:
+                if start < covered_start:
+                    next_ranges.append((start, covered_start - 1))
+                if end > covered_end:
+                    next_ranges.append((covered_end + 1, end))
+        remaining = next_ranges
+    return remaining
+
+
+def _section_line_ranges(
+    text: str, sections: list[str], requested: list[str]
+) -> list[tuple[int, int]]:
+    """Track source lines separately from excerpt formatting for expansion deduplication."""
+    requested = [section.strip() for section in requested if section.strip()]
+    if not requested or "*" in requested:
+        return [(1, len(text.splitlines()))]
+    matches = list(H2_RE.finditer(text))
+    available: dict[str, tuple[int, int]] = {}
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        start_line = text.count("\n", 0, match.start()) + 1
+        available[match.group(1).strip().casefold()] = (
+            start_line, start_line + len(text[match.start():end].splitlines()) - 1
+        )
+    if not any(section.strip().casefold() in available for section in requested):
+        return [(1, len(text.splitlines()))]
+    return _merge_ranges(available[section.casefold()] for section in sections)
+
+
+def _normalize_expansions(
+    requests: Iterable[tuple[str, int, int] | list[str]],
+) -> list[tuple[str, list[tuple[int, int]]]]:
+    grouped: dict[str, tuple[str, list[tuple[int, int]]]] = {}
+    for request in requests:
+        if len(request) != 3:
+            raise TaskContextError("Each expansion requires PATH START END.")
+        path, start, end = request
+        if not isinstance(path, str):
+            raise TaskContextError("Expansion paths must be repository-relative text.")
+        try:
+            for value in (start, end):
+                if not ((isinstance(value, int) and not isinstance(value, bool))
+                        or (isinstance(value, str) and re.fullmatch(r"[+-]?\d+", value))):
+                    raise ValueError
+            start, end = int(start), int(end)
+        except (ValueError, TypeError):
+            raise TaskContextError("Expansion line numbers must be integers.") from None
+        path = _normalized_relative(path.strip())
+        key = path.casefold()
+        grouped.setdefault(key, (path, []))[1].append((start, end))
+    # Preserve path priority and validate every distinct request against current source
+    # before merging. An out-of-bounds range must not disappear inside a wider range.
+    return [(path, sorted(set(ranges))) for path, ranges in grouped.values()]
 
 
 def _manifest_data(path: Path) -> tuple[dict, bytes]:
@@ -446,20 +541,71 @@ def classify_route(task: str, manifest: dict, route_id: str | None = None) -> di
 
 
 def _task_tokens(task: str) -> list[str]:
-    tokens = re.findall(r"[^\W_][\w-]{1,}", normalize_task(task), flags=re.UNICODE)
-    return sorted({token for token in tokens if token not in STOP_WORDS})
+    tokens = re.findall(r"[\w][\w-]*", normalize_task(task), flags=re.UNICODE)
+    return sorted({token for token in tokens if token not in STOP_WORDS and not token.isdecimal()})
 
 
 def _relevance_score(task: str, relative_path: str, excerpt: str) -> float:
-    path_text = relative_path.casefold()
-    sample = excerpt[:4000].casefold()
+    path_text = relative_path.casefold().replace("_", " ").replace("-", " ")
+    sample = excerpt.casefold()
     score = 0.0
+    body_matches = 0
+    normalized_task = normalize_task(task).replace("\\", "/")
+    if _phrase_matches(relative_path.casefold(), normalized_task) or _phrase_matches(PurePosixPath(relative_path).name.casefold(), normalized_task):
+        score += 100.0
     for token in _task_tokens(task):
-        if _phrase_matches(token, path_text):
+        if _phrase_matches(token.replace("_", " ").replace("-", " "), path_text):
             score += 10.0
-        if _phrase_matches(token, sample):
-            score += 1.0
+        occurrences = len(re.findall(rf"(?<![\w]){re.escape(token)}(?![\w])", sample))
+        # A named identifier is a strong signal; ordinary content words need
+        # corroboration, so one incidental mention cannot pull in a large file.
+        defined = re.search(rf"(?m)^\s*(?:async\s+)?(?:def|class|function)\s+{re.escape(token)}\b", sample)
+        if occurrences and ("_" in token or "-" in token or defined):
+            score += 5.0
+        elif occurrences:
+            body_matches += 1
+    if body_matches >= 2:
+        score += body_matches
     return score
+
+
+def _optional_excerpt(
+    task: str, text: str, available: list[tuple[int, int]],
+) -> tuple[str, list[tuple[int, int]]]:
+    """Return bounded local windows; explicit expansion remains the escape hatch."""
+    lines = text.splitlines()
+    tokens = _task_tokens(task)
+    hits = [index + 1 for index, line in enumerate(lines)
+            if any(_phrase_matches(token, line.casefold()) for token in tokens)
+            and any(start <= index + 1 <= end for start, end in available)]
+    windows = _merge_ranges(
+        (max(start, hit - 6), min(end, hit + 12))
+        for hit in hits for start, end in available if start <= hit <= end
+    ) if hits else available
+    selected: list[tuple[int, int]] = []
+    characters = 0
+    line_count = 0
+    for start, end in windows:
+        if selected:
+            characters += 2
+        last = start - 1
+        for line in range(start, end + 1):
+            cost = len(lines[line - 1]) + 1
+            if line_count >= OPTIONAL_EXCERPT_LINES or characters + cost > OPTIONAL_EXCERPT_CHARS:
+                break
+            last = line
+            line_count += 1
+            characters += cost
+        if last >= start:
+            selected.append((start, last))
+        if last < end:
+            break
+    excerpt = "\n\n".join("\n".join(lines[start - 1:end]).strip() for start, end in selected)
+    if not selected and windows:
+        # Redact a whole enormous line before its later character clipping;
+        # clipping first could sever a credential URL before its @ delimiter.
+        excerpt = lines[windows[0][0] - 1]
+    return excerpt, selected
 
 
 def _is_excluded(relative_path: str, patterns: Iterable[str]) -> bool:
@@ -501,6 +647,7 @@ def _prepare_candidate(
     warnings: list[str],
     gaps: list[str],
     dropped: list[DroppedSource],
+    covered_ranges: list[tuple[int, int]] | None = None,
 ) -> PreparedSource | None:
     relative = _normalized_relative(candidate.path)
     path, unsafe_reason = _safe_resolve(root, relative)
@@ -511,7 +658,8 @@ def _prepare_candidate(
             gaps.append(message)
         dropped.append(DroppedSource(relative, candidate.origin, f"unsafe: {unsafe_reason}"))
         return None
-    if _is_excluded(relative, exclude_globs):
+    assert path is not None
+    if _is_excluded(relative, exclude_globs) or _is_excluded(path.relative_to(root.resolve()).as_posix(), exclude_globs):
         message = f"Skipped excluded context `{relative}`."
         warnings.append(message)
         if candidate.required:
@@ -539,7 +687,28 @@ def _prepare_candidate(
         return None
     text = raw.decode("utf-8", errors="replace")
 
-    if candidate.start_line is not None and candidate.end_line is not None:
+    line_ranges: list[tuple[int, int]]
+    if candidate.line_ranges:
+        lines = text.splitlines()
+        valid_ranges: list[tuple[int, int]] = []
+        for start, end in candidate.line_ranges:
+            if start < 1 or end < start or start > len(lines):
+                warnings.append(f"Ignored invalid expansion range for `{relative}`: {start}-{end}.")
+                dropped.append(DroppedSource(relative, candidate.origin, f"invalid_expansion_range: {start}-{end}"))
+                continue
+            if end > len(lines):
+                warnings.append(
+                    f"Clipped expansion range for `{relative}` from {start}-{end} to {start}-{len(lines)}."
+                )
+            valid_ranges.append((start, min(end, len(lines))))
+        if not valid_ranges:
+            return None
+        line_ranges = _uncovered_ranges(_merge_ranges(valid_ranges), covered_ranges or [])
+        excerpt = "\n\n".join(
+            "\n".join(lines[start - 1:end]).strip() for start, end in line_ranges
+        )
+        sections = [f"lines {start}-{end}" for start, end in line_ranges]
+    elif candidate.start_line is not None and candidate.end_line is not None:
         lines = text.splitlines()
         start = candidate.start_line
         end = candidate.end_line
@@ -549,16 +718,40 @@ def _prepare_candidate(
             return None
         excerpt = "\n".join(lines[start - 1 : min(end, len(lines))]).strip()
         sections = [f"lines {start}-{min(end, len(lines))}"]
+        line_ranges = [(start, min(end, len(lines)))]
     else:
         excerpt, sections, missing_sections = slice_sections(text, candidate.sections)
+        line_ranges = _section_line_ranges(text, sections, candidate.sections)
         for section in missing_sections:
             warnings.append(f"Section `{section}` was not found in `{relative}`; included available content.")
 
+    score = candidate.search_score or _relevance_score(task, relative, excerpt)
+    compact_excerpt = None
+    if candidate.origin == "routed-optional":
+        if score <= 0:
+            excerpt = ""
+        elif len(excerpt) > OPTIONAL_EXCERPT_CHARS or len(excerpt.splitlines()) > OPTIONAL_EXCERPT_LINES:
+            excerpt, line_ranges = _optional_excerpt(task, text, line_ranges)
+            sections = [f"lines {start}-{end}" for start, end in line_ranges] or ["clipped line"]
+            warnings.append(f"Bounded optional context `{relative}` to relevant lines; remaining content omitted. Use explicit expansion if needed.")
+    if relative == ".agent/memory/index.json" and candidate.origin.startswith("routed-"):
+        try:
+            try:
+                from scripts.memory_lookup import render_lookup
+            except ImportError:
+                from memory_lookup import render_lookup  # type: ignore
+            compact_excerpt = render_lookup(root, index_text=text)
+        except (ImportError, OSError, ValueError) as exc:
+            warnings.append(f"Memory lookup projection unavailable ({type(exc).__name__}); compact view retains the original index excerpt.")
+
     safe_excerpt, redactions = redact_text(excerpt)
+    if candidate.origin == "routed-optional" and len(safe_excerpt) > OPTIONAL_EXCERPT_CHARS:
+        marker = "\n[Optional excerpt clipped after redaction; expand the source for more.]"
+        safe_excerpt = safe_excerpt[:OPTIONAL_EXCERPT_CHARS - len(marker)].rstrip() + marker
+        line_ranges = []
     if redactions:
         summary = ", ".join(f"{key}={count}" for key, count in sorted(redactions.items()))
         warnings.append(f"Redacted suspicious content in `{relative}` ({summary}).")
-    score = candidate.search_score or _relevance_score(task, relative, safe_excerpt)
     return PreparedSource(
         path=relative,
         category=candidate.category,
@@ -571,6 +764,8 @@ def _prepare_candidate(
         redactions=redactions,
         group=candidate.group,
         group_limit=candidate.group_limit,
+        line_ranges=line_ranges,
+        compact_excerpt=compact_excerpt,
     )
 
 
@@ -667,14 +862,16 @@ def _append_selection(
     max_chars: int,
 ) -> None:
     key = source.path.casefold()
-    if key in seen:
+    existing = next((item for item in selected if item.path.casefold() == key), None)
+    merge = existing is not None and source.origin == "explicit-expansion"
+    if key in seen and not merge:
         dropped.append(DroppedSource(source.path, source.origin, "duplicate_path"))
         return
     if source.group and source.group_limit is not None:
         if group_counts.get(source.group, 0) >= source.group_limit:
             dropped.append(DroppedSource(source.path, source.origin, "source_match_limit"))
             return
-    if len(selected) >= max_docs:
+    if len(selected) >= max_docs and not merge:
         dropped.append(DroppedSource(source.path, source.origin, "document_budget_exhausted"))
         if source.required:
             message = f"Required context `{source.path}` exceeded the {max_docs}-document budget."
@@ -682,7 +879,8 @@ def _append_selection(
             gaps.append(message)
         return
 
-    remaining = max_chars - sum(item.char_count for item in selected)
+    separator = "\n\n" if merge and existing is not None and existing.excerpt else ""
+    remaining = max_chars - sum(item.char_count for item in selected) - len(separator)
     if remaining <= 0:
         dropped.append(DroppedSource(source.path, source.origin, "character_budget_exhausted"))
         if source.required:
@@ -704,7 +902,21 @@ def _append_selection(
         "routed-required": "required_route",
         "routed-optional": "optional_route_match",
         "advisory-search": "advisory_search_rank",
+        "explicit-expansion": "explicit_expansion",
     }[source.origin]
+    if merge:
+        assert existing is not None
+        existing.excerpt += separator + excerpt
+        existing.sections.extend(source.sections)
+        # Full input ranges do not establish coverage of a truncated excerpt.
+        if not truncated:
+            existing.line_ranges = _merge_ranges(existing.line_ranges + source.line_ranges)
+        existing.selection_reason += "+explicit_expansion"
+        # Explicitly requested source text must never disappear into a projection.
+        existing.compact_excerpt = None
+        existing.truncated |= truncated
+        _merge_counts(existing.redactions, source.redactions)
+        return
     selected.append(
         SelectedSource(
             path=source.path,
@@ -717,6 +929,8 @@ def _append_selection(
             selection_reason=reason,
             redactions=source.redactions,
             truncated=truncated,
+            line_ranges=[] if truncated else source.line_ranges,
+            compact_excerpt=source.compact_excerpt,
         )
     )
     seen.add(key)
@@ -733,10 +947,18 @@ def build_task_context(
     search_provider: SearchProvider | None = None,
     manifest_path: Path | None = None,
     generated_at: str | None = None,
+    expand_sources: Iterable[tuple[str, int, int] | list[str]] = (),
+    reason: str | None = None,
 ) -> BuildResult:
     normalized = normalize_task(task)
     if not normalized:
         raise TaskContextError("Task must contain non-whitespace text.")
+    expansions = _normalize_expansions(expand_sources)
+    if expansions and (reason is None or not reason.strip()):
+        raise TaskContextError("Explicit expansion requires a non-empty --reason.")
+    if reason is not None and not expansions:
+        raise TaskContextError("--reason requires at least one --expand-source.")
+    safe_reason, reason_redactions = redact_text(" ".join((reason or "").split()))
     root = root.resolve()
     if not root.is_dir():
         raise TaskContextError(f"Repository root does not exist: {root}")
@@ -778,6 +1000,38 @@ def build_task_context(
         _append_selection(
             source, selected, dropped, warnings, gaps, seen, group_counts, max_docs, max_chars
         )
+
+    expansion_notes: list[str] = []
+    for path, ranges in expansions:
+        request_label = f"`{redact_text(path)[0]}` lines " + ", ".join(f"{start}-{end}" for start, end in ranges)
+        existing = next((item for item in selected if item.path.casefold() == path.casefold()), None)
+        dropped_before = len(dropped)
+        prepared = _prepare_candidate(
+            root, task,
+            Candidate(path, "explicit-context", "explicit-expansion", False, line_ranges=ranges),
+            exclude_globs, warnings, gaps, dropped,
+            covered_ranges=existing.line_ranges if existing else [],
+        )
+        if prepared is None:
+            outcome = "rejected"
+        elif not prepared.line_ranges:
+            outcome = "already included in routed context"
+        else:
+            _append_selection(
+                prepared, selected, dropped, warnings, gaps, seen, group_counts, max_docs, max_chars
+            )
+            included = next((item for item in selected if item.path.casefold() == path.casefold()), None)
+            if included is None or any(
+                item.reason in {"document_budget_exhausted", "character_budget_exhausted"}
+                for item in dropped[dropped_before:]
+            ):
+                outcome = "rejected"
+            else:
+                outcome = "included with truncation" if included.truncated else "included"
+        details = "; ".join(item.reason for item in dropped[dropped_before:])
+        expansion_notes.append(f"{request_label}: {outcome}" + (f" ({details})" if details else "") + ".")
+    if reason_redactions:
+        warnings.append("Redacted suspicious secret-like content from the expansion reason.")
 
     prepared_optional.sort(key=lambda item: (-item.score, item.path))
     for source in prepared_optional:
@@ -840,10 +1094,15 @@ def build_task_context(
     if task_redactions:
         warnings.insert(0, "Redacted suspicious secret-like content from the task text.")
     timestamp = generated_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    identity = task_hash(task)
+    if expansions:
+        identity = _sha256_bytes(json.dumps(
+            [normalized, expansions, safe_reason], ensure_ascii=False, separators=(",", ":")
+        ).encode("utf-8"))[:16]
     return BuildResult(
         task=safe_task,
         normalized_task=normalized,
-        task_hash=task_hash(task),
+        task_hash=identity,
         generated_at=timestamp,
         route_id=str(route["id"]),
         route_heading=str(route["index_heading"]),
@@ -853,14 +1112,16 @@ def build_task_context(
         max_chars=max_chars,
         selected=selected,
         dropped=dropped,
-        warnings=list(dict.fromkeys(warnings)),
-        gaps=list(dict.fromkeys(gaps)),
+        warnings=list(dict.fromkeys(redact_text(value)[0] for value in warnings)),
+        gaps=list(dict.fromkeys(redact_text(value)[0] for value in gaps)),
         task_redactions=task_redactions,
+        expansion_reason=safe_reason,
+        expansion_notes=expansion_notes,
     )
 
 
 def _table_cell(value: object) -> str:
-    return str(value).replace("\\", "/").replace("|", "\\|").replace("\n", " ")
+    return redact_text(str(value))[0].replace("\\", "/").replace("|", "\\|").replace("\n", " ")
 
 
 def render_markdown(result: BuildResult) -> str:
@@ -868,6 +1129,7 @@ def render_markdown(result: BuildResult) -> str:
         "# Task Context",
         "",
         "> Generated cache artifact. Current source files remain authoritative.",
+        "> Full audit view: the character budget covers excerpts; this complete audit may be larger.",
         "",
         "## Task",
         "",
@@ -889,6 +1151,9 @@ def render_markdown(result: BuildResult) -> str:
     lines.extend(f"- {warning}" for warning in result.warnings or ["(none)"])
     lines.extend(["", "## Gaps", ""])
     lines.extend(f"- {gap}" for gap in result.gaps or ["(none)"])
+    if result.expansion_notes:
+        lines.extend(["", "## Explicit Expansion", "", f"Reason: {result.expansion_reason}", ""])
+        lines.extend(f"- {note}" for note in result.expansion_notes)
     lines.extend(
         [
             "",
@@ -929,7 +1194,7 @@ def render_markdown(result: BuildResult) -> str:
     for index, source in enumerate(result.selected, start=1):
         lines.extend(
             [
-                f"### {index}. `{source.path}`",
+                f"### {index}. `{redact_text(source.path)[0]}`",
                 "",
                 f"_Origin: {source.origin}; sections: {', '.join(source.sections) or 'all'}; "
                 f"SHA-256: `{source.source_hash}`._",
@@ -944,6 +1209,74 @@ def render_markdown(result: BuildResult) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_compact_markdown(result: BuildResult) -> str:
+    """Budget the complete reading artifact without silently dropping required text."""
+    lines = [
+        "# Task Context",
+        "",
+        f"> Compact reading view; current sources remain authoritative. Full audit: `{result.task_hash}.md`.",
+        f"> Built {result.generated_at}; manifest SHA-256 prefix `{result.route_manifest_hash[:12]}`.",
+        "",
+        f"Task: {result.task}",
+        f"Route: {result.route_id}; search: {result.search_status}; complete-output limit: {result.max_chars} characters.",
+        "",
+        "## Warnings",
+        "",
+        *(f"- {warning}" for warning in result.warnings or ["(none)"]),
+        "",
+        "## Gaps",
+        "",
+        *(f"- {gap}" for gap in result.gaps or ["(none)"]),
+    ]
+    if result.expansion_notes:
+        lines.extend(["", "## Explicit Expansion", "", f"Reason: {result.expansion_reason}"])
+        lines.extend(f"- {note}" for note in result.expansion_notes)
+    drops = Counter(source.reason.split(":", 1)[0] for source in result.dropped)
+    lines.extend(["", "## Selection", "",
+                  f"{len(result.selected)}/{result.max_docs} sources; {len(result.dropped)} dropped candidates. "
+                  + (", ".join(f"{reason}={count}" for reason, count in sorted(drops.items())) or "No drops.")])
+    lines.append("Full drop details and full hashes are in the audit; `explain` also lists decisions.")
+    introduction = "\n".join(lines)
+    omitted = "[Omitted from compact view to preserve the complete-output budget; inspect the full audit.]"
+    clipped = "\n[Clipped in compact view to preserve the complete-output budget; inspect the full audit.]"
+    headings: list[str] = []
+    excerpts: list[str] = []
+    mandatory: list[bool] = []
+    for source in result.selected:
+        projected = source.compact_excerpt is not None
+        headings.append(
+            f"### `{redact_text(source.path)[0]}`\n\n"
+            f"{source.selection_reason}; {_table_cell(', '.join(source.sections) or 'all')}; SHA-256 prefix `{source.source_hash[:12]}`."
+            + (" Compact memory projection; raw index and evidence hashes remain in the audit." if projected else "")
+        )
+        required = source.origin in {"routed-required", "explicit-expansion"}
+        mandatory.append(required)
+        excerpts.append((source.compact_excerpt if projected else source.excerpt) if required else omitted)
+
+    def compose() -> str:
+        blocks = [f"{heading}\n\n{excerpt}" for heading, excerpt in zip(headings, excerpts)]
+        return introduction + ("\n\n" + "\n\n".join(blocks) if blocks else "\n\nNo readable context sources selected.") + "\n"
+
+    rendered = compose()
+    if len(rendered) > result.max_chars:
+        raise TaskContextError(
+            f"Compact context needs {len(rendered)} characters for required/explicit excerpts and diagnostics, "
+            f"exceeding the {result.max_chars}-character limit. Full audit: {result.task_hash}.md; use --view full "
+            "or narrow explicit ranges. Required content was not silently omitted."
+        )
+    for index, source in enumerate(result.selected):
+        if mandatory[index]:
+            continue
+        excerpt = source.compact_excerpt if source.compact_excerpt is not None else source.excerpt
+        capacity = result.max_chars - len(rendered) + len(excerpts[index])
+        if len(excerpt) <= capacity:
+            excerpts[index] = excerpt
+        elif capacity > len(clipped):
+            excerpts[index] = excerpt[:capacity - len(clipped)].rstrip() + clipped
+        rendered = compose()
+    return rendered
+
+
 def render_explanation(result: BuildResult) -> str:
     lines = [
         f"Route: {result.route_id} ({result.route_heading})",
@@ -953,14 +1286,14 @@ def render_explanation(result: BuildResult) -> str:
         "Selected:",
     ]
     lines.extend(
-        f"- {source.path} [{source.origin}] {source.selection_reason} "
+        f"- {redact_text(source.path)[0]} [{source.origin}] {source.selection_reason} "
         f"chars={source.char_count} sha256={source.source_hash[:12]}"
         for source in result.selected
     )
     if not result.selected:
         lines.append("- (none)")
     lines.append("Dropped:")
-    lines.extend(f"- {source.path} [{source.origin}] {source.reason}" for source in result.dropped)
+    lines.extend(f"- {redact_text(source.path)[0]} [{source.origin}] {redact_text(source.reason)[0]}" for source in result.dropped)
     if not result.dropped:
         lines.append("- (none)")
     lines.append("Warnings:")
@@ -971,6 +1304,9 @@ def render_explanation(result: BuildResult) -> str:
     lines.extend(f"- {gap}" for gap in result.gaps)
     if not result.gaps:
         lines.append("- (none)")
+    if result.expansion_notes:
+        lines.extend(["Explicit expansion:", f"Reason: {result.expansion_reason}"])
+        lines.extend(f"- {note}" for note in result.expansion_notes)
     return "\n".join(lines) + "\n"
 
 
@@ -980,10 +1316,34 @@ def bundle_path(root: Path, result: BuildResult) -> Path:
 
 def materialize_bundle(root: Path, result: BuildResult) -> Path:
     destination = bundle_path(root, result)
+    _write_bundle(destination, render_markdown(result))
+    try:
+        # A new full-only build must not leave an older companion looking current.
+        destination.with_suffix(".read.md").unlink(missing_ok=True)
+    except OSError as exc:
+        raise TaskContextError("Full audit was written, but its stale reading companion could not be removed.") from exc
+    return destination
+
+
+def materialize_reading_bundle(root: Path, result: BuildResult) -> Path:
+    destination = bundle_path(root, result).with_suffix(".read.md")
+    try:
+        content = render_compact_markdown(result)
+    except TaskContextError:
+        # Do not leave a previous reading view looking current after a failed rebuild.
+        try:
+            destination.unlink(missing_ok=True)
+        except OSError as exc:
+            raise TaskContextError("Compact rebuild failed and its stale reading artifact could not be removed.") from exc
+        raise
+    return _write_bundle(destination, content)
+
+
+def _write_bundle(destination: Path, content: str) -> Path:
     temporary = destination.parent / f".{destination.name}.{os.getpid()}.{uuid.uuid4().hex}.tmp"
     try:
         destination.parent.mkdir(parents=True, exist_ok=True)
-        temporary.write_text(render_markdown(result), encoding="utf-8")
+        temporary.write_text(content, encoding="utf-8", newline="\n")
         os.replace(temporary, destination)
     except OSError as exc:
         try:

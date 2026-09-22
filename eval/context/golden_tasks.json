@@ -10,7 +10,7 @@
     "task": "Fix a failing login regression",
     "expected_route": "bug-fix",
     "expected_docs": ["docs/agent/CONTEXT_ROUTER.md", "docs/agent/CODEMAP.md"],
-    "forbidden_docs": [".env"]
+    "forbidden_docs": [".env", "tests/agent/test_decision_advice.py", "tests/agent/test_behavior_eval.py"]
   },
   {
     "id": "api-endpoint",

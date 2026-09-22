@@ -1,8 +1,13 @@
 import argparse
+import json
 import re
 from datetime import date
 from pathlib import Path
 
+try:
+    from scripts.memory_evidence import EvidenceError, capture_evidence, read_source, safe_path
+except ImportError:  # direct script execution
+    from memory_evidence import EvidenceError, capture_evidence, read_source, safe_path
 
 ROOT = Path(__file__).resolve().parents[1]
 TASKS = ROOT / ".agent" / "tasks"
@@ -32,7 +37,10 @@ def read_task(path_arg: str | None) -> Path:
         raise SystemExit(f"Task log not found: {path}")
     if not path.is_file():
         raise SystemExit(f"Task log is not a file: {path}")
-    return path
+    try:
+        return safe_path(ROOT, path.resolve().relative_to(ROOT.resolve()).as_posix())
+    except (EvidenceError, ValueError) as exc:
+        raise SystemExit(f"Unsafe task log: {exc}") from exc
 
 
 def heading_text(text: str, heading: str) -> str:
@@ -77,14 +85,14 @@ def first_nonempty(section: str, fallback: str) -> str:
     return fallback
 
 
-def relative(path: Path) -> str:
+def relative(path: Path, root: Path = ROOT) -> str:
     try:
-        return path.relative_to(ROOT).as_posix()
+        return path.relative_to(root).as_posix()
     except ValueError:
         return path.as_posix()
 
 
-def candidate_body(task_path: Path, text: str) -> str:
+def candidate_body(task_path: Path, text: str, root: Path = ROOT) -> str:
     title = text.splitlines()[0].lstrip("# ").strip() if text.splitlines() else task_path.stem
     goal = first_nonempty(heading_text(text, "Goal"), "TODO: summarize the reusable lesson.")
     files = path_like_items(
@@ -92,8 +100,15 @@ def candidate_body(task_path: Path, text: str) -> str:
         + list_items(heading_text(text, "Changed Files"))
     )
     files = [item for item in files if item and "TODO" not in item]
-    source = relative(task_path)
+    source = relative(task_path, root)
     today = date.today().isoformat()
+    evidence: list[dict[str, str]] = []
+    evidence_warnings: list[str] = []
+    for path in dict.fromkeys(files):
+        try:
+            evidence.extend(capture_evidence(root, [path]))
+        except (EvidenceError, OSError) as exc:
+            evidence_warnings.append(f"- {path}: {exc}")
 
     related_files = files or [
         "TODO: add current source, test, or doc paths that verify this memory."
@@ -106,7 +121,8 @@ def candidate_body(task_path: Path, text: str) -> str:
             "Type: TODO: semantic or procedural",
             "Scope: TODO: project area or workflow",
             "Confidence: low",
-            f"Last verified: {today}",
+            "Last verified: TODO: record only after reviewing the claims against current sources",
+            f"Candidate generated: {today}",
             f"Source task: {source}",
             "",
             "## When to use",
@@ -125,6 +141,16 @@ def candidate_body(task_path: Path, text: str) -> str:
             "",
             *(f"- {item}" for item in related_files),
             "",
+            "## Evidence to review",
+            "",
+            "These fingerprints describe current files, not verified claims. Review and select",
+            "the sources that support the lesson, then copy their evidence into the index.",
+            "",
+            "```json",
+            json.dumps(evidence, indent=2),
+            "```",
+            *evidence_warnings,
+            "",
             "## Staleness triggers",
             "",
             "- TODO: list code, docs, tools, or workflow changes that should re-check this memory.",
@@ -136,6 +162,7 @@ def candidate_body(task_path: Path, text: str) -> str:
             "- [ ] Was verified against current files before promotion.",
             "- [ ] Was moved into semantic or procedural memory.",
             "- [ ] `.agent/memory/index.json` was updated.",
+            "- [ ] Source fingerprints were refreshed after review and strict evidence validation passed.",
             "",
         ]
     )
@@ -147,7 +174,10 @@ def main() -> None:
     args = parser.parse_args()
 
     task_path = read_task(args.task_log)
-    text = task_path.read_text(encoding="utf-8")
+    try:
+        text = read_source(ROOT, relative(task_path))
+    except (EvidenceError, OSError) as exc:
+        parser.exit(1, f"Cannot read task log: {exc}\n")
     title = text.splitlines()[0].lstrip("# ").strip() if text.splitlines() else task_path.stem
     output = CANDIDATES / f"{date.today().isoformat()}-{slugify(title)}.md"
     CANDIDATES.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,8 @@
+{
+  "id": "missing-context",
+  "request": "Fix scheduler.ready() to follow the retry contract. Locate the linked current specification from docs/retries.md; do not assume the duration unit from the function name. Include a short evidence note at docs/investigation.md citing the exact spec and explaining the boundary.",
+  "permitted_changes": [
+    "src/scheduler.py",
+    "docs/investigation.md"
+  ]
+}

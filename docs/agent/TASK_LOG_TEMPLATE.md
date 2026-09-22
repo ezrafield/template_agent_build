@@ -1,5 +1,12 @@
 # Task: Short Task Name
 
+Use only sections needed to resume. Link an existing plan or check record rather
+than copying its goal, steps, assumptions, or results. Keep one verification
+record and refer to it from the checkpoint.
+The audit accepts either the legacy audit headings or a standalone
+`Review And Checkpoint` section with every checkpoint field filled. For a concise
+handoff, copy that section and link the plan's goals and verification.
+
 ## Goal
 Describe the outcome the user wants.
 
@@ -40,6 +47,16 @@ Describe what passed and what was not run.
 - Candidate generated: no
 - Promotion needed: no
 - Notes: TODO
+
+## Review And Checkpoint
+- Linked plan: TODO
+- Completed acceptance criteria: TODO
+- Outstanding material findings: none | TODO
+- Review independence: separate agent/session | same context | not required
+- Verified revision and dirty-file state: TODO
+- Verification link or new checks/results: TODO
+- External effects already performed: none | TODO
+- Next action and checks invalidated by later edits: TODO
 
 ## Follow-Up
 List remaining risks or future tasks.

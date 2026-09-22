@@ -8,6 +8,9 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | --- | --- |
 | `scripts/task_context.py` | Build or explain an inspectable Markdown context bundle for one task. |
 | `scripts/task_context_engine.py` | Validate routes and perform deterministic selection, safe reads, budgeting, redaction, and rendering. |
+| `scripts/decision_advice.py` | Typed, optional Jev shadow judgments; never controls task execution. |
+| `eval/behavior/run_behavior_eval.py` | Validate task fixtures offline or explicitly compare live baseline/candidate outcomes. |
+| `eval/advice/run_advice_eval.py` | Validate shadow labels offline or explicitly measure Jev against them. |
 | `scripts/generate_codemap.py` | Refresh `docs/agent/CODEMAP.md` from source folders. |
 | `scripts/agent_setup.py` | Detect stack and commands, refresh agent context, and run validation. |
 | `scripts/agentkit_installer.py` | Install or update agent-kit files from `agentkit-manifest.json`. |
@@ -25,6 +28,7 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `scripts/audit_module_cards.py` | Check module-card coverage, headings, and unresolved TODOs. |
 | `scripts/audit_task_logs.py` | Check task logs for required audit headings. |
 | `scripts/extract_task_memory.py` | Create a manually reviewed memory candidate from a task log. |
+| `scripts/memory_lookup.py` | Query compact memory summaries, paths, and current evidence status without fingerprint dumps. |
 | `scripts/validate_memory_links.py` | Validate promoted memory cards, metadata, index entries, and linked files. |
 | `scripts/audit_memory_staleness.py` | Warn when promoted memory is old or references missing files. |
 | `scripts/check_architecture_boundaries.py` | Catch simple layer import violations. |
@@ -91,6 +95,8 @@ make targeted-tests
 make task-context TASK="implement a service change"
 make task-context-explain TASK="implement a service change"
 make task-context-eval
+make behavior-eval
+make advice-eval
 make validate-agent-docs
 make validate-agent-assets
 make agent-kit-check
@@ -128,14 +134,15 @@ make retrieval-eval
 - Prefer scripts for deterministic checks.
 - Keep active project hooks and rules opt-in, machine-local, reviewed, and trusted.
 - Do not use command `allow` rules to bypass the normal sandbox for routine tests or lint.
-- Build the routed task-context bundle before non-trivial navigation, changes,
-  debugging, reviews, architecture decisions, plans, or memory work.
+- Reuse a current inspected task-context bundle across skills, or build one before
+  non-trivial work. Refresh when the task, route, ranges, or relevant sources change.
 - Treat route requirements as authoritative and Semble additions as advisory.
 - Prefer the bundle + `rg` + CODEMAP/module cards for normal retrieval.
 - Keep Serena optional for language-server backed symbol work.
 - Use Repomix as an export tool, not as the normal daily retrieval workflow.
 - Prefer targeted checks before broad suites.
 - Use memory as guidance only; verify it before editing.
+- Use `docs/agent/RELIABILITY_EVALS.md` for live experiments, failure accounting, and evidence limits. Offline evaluators never invoke models.
 - Keep scripts safe by default.
 - Make script output easy for humans and agents to inspect.
 - Compress noisy terminal output when possible, but keep raw reruns available for unclear failures.

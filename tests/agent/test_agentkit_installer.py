@@ -3,7 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scripts.agentkit_installer import check, install
+from scripts.agentkit_installer import check, exclusion_patterns, install, iter_manifest_paths
 
 
 def write(path: Path, text: str) -> None:
@@ -14,7 +14,7 @@ def write(path: Path, text: str) -> None:
 def create_source(root: Path) -> None:
     manifest = {
         "schema_version": 2,
-        "version": "0.4.0",
+        "version": "0.5.0",
         "skills": [],
         "included_harness_files": ["kit/"],
         "merge_files": ["AGENTS.md"],
@@ -41,6 +41,18 @@ def test_fresh_install_and_reinstall_are_idempotent(tmp_path: Path) -> None:
     assert (target / "kit" / "current.txt").read_text(encoding="utf-8") == "current\n"
     assert (target / ".agentkit-installed-files").read_text(encoding="utf-8") == first_state
     assert (target / "AGENTS.md").read_text(encoding="utf-8").count("<!-- agentkit:begin -->") == 1
+
+
+def test_project_ownership_is_rooted_but_runtime_exclusions_remain_recursive(tmp_path: Path) -> None:
+    for path in ("src/user.py", "eval/fixtures/initial/src/sample.py",
+                 "eval/fixtures/initial/docs/specs/contract.md",
+                 "eval/fixtures/initial/src/__pycache__/sample.pyc"):
+        write(tmp_path / path, "content")
+    manifest = {"project_local_files": ["src/", "docs/specs/"],
+                "excluded_files": ["__pycache__/", "*.pyc"]}
+    selected = {p.relative_to(tmp_path).as_posix() for p in
+                iter_manifest_paths(tmp_path, ["src/", "eval/"], exclusion_patterns(manifest))}
+    assert selected == {"eval/fixtures/initial/src/sample.py", "eval/fixtures/initial/docs/specs/contract.md"}
 
 
 def test_update_backs_up_and_prunes_only_recorded_obsolete_files(tmp_path: Path) -> None:
@@ -78,6 +90,11 @@ def test_real_manifest_fresh_install_has_ten_skills_and_task_context(tmp_path: P
     assert (target / "docs" / "agent" / "context-routes.json").is_file()
     assert (target / "eval" / "context" / "golden_tasks.json").is_file()
     assert (target / "docs" / "adr" / "0004-task-context-compiler.md").is_file()
+    assert (target / "docs" / "adr" / "0005-measurable-reliability.md").is_file()
+    assert (target / "scripts" / "decision_advice.py").is_file()
+    assert (target / "scripts" / "memory_lookup.py").is_file()
+    assert (target / "eval" / "behavior" / "run_behavior_eval.py").is_file()
+    assert (target / "eval" / "advice" / "cases.json").is_file()
     assert not (target / ".codex" / "hooks.json").exists()
     assert not (target / ".codex" / "rules" / "default.rules").exists()
     assert not list(target.rglob("__pycache__"))
@@ -94,6 +111,7 @@ def test_real_manifest_fresh_install_has_ten_skills_and_task_context(tmp_path: P
     )
     assert setup.returncode == 0, setup.stdout + setup.stderr
     assert list((target / ".agent" / "context-cache" / "task-context").glob("*.md"))
+    assert list((target / ".agent" / "context-cache" / "task-context").glob("*.read.md"))
 
     golden = subprocess.run(
         [sys.executable, "eval/context/run_task_context_eval.py"],
@@ -104,6 +122,14 @@ def test_real_manifest_fresh_install_has_ten_skills_and_task_context(tmp_path: P
         timeout=60,
     )
     assert golden.returncode == 0, golden.stdout + golden.stderr
+
+    for command in (
+        "eval/behavior/run_behavior_eval.py", "eval/advice/run_advice_eval.py",
+        "eval/skills/run_skill_routing_eval.py", "scripts/memory_lookup.py",
+    ):
+        offline = subprocess.run([sys.executable, command], cwd=target, text=True,
+                                 capture_output=True, check=False, timeout=60)
+        assert offline.returncode == 0, offline.stdout + offline.stderr
 
     obsolete = target / ".agents" / "skills" / "code-search" / "SKILL.md"
     write(obsolete, "# v0.2 managed skill\n")

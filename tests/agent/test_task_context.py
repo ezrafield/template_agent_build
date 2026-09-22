@@ -1,4 +1,5 @@
 import json
+import hashlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -127,7 +128,7 @@ def test_required_sources_precede_optional_and_advisory_sources(tmp_path: Path) 
             ],
         )
 
-    result = engine.build_task_context("feature work", tmp_path, search_provider=search)
+    result = engine.build_task_context("feature work optional-feature.md", tmp_path, search_provider=search)
 
     assert [item.path for item in result.selected] == [
         "required.md",
@@ -369,7 +370,10 @@ def test_cli_stdout_hashed_markdown_only_and_explain(tmp_path: Path, capsys: pyt
     captured = capsys.readouterr()
     assert captured.out.startswith("# Task Context\n")
     cache = tmp_path / ".agent" / "context-cache" / "task-context"
-    assert [path.name for path in cache.iterdir()] == [f"{engine.task_hash('feature work')}.md"]
+    assert sorted(path.name for path in cache.iterdir()) == [
+        f"{engine.task_hash('feature work')}.md", f"{engine.task_hash('feature work')}.read.md",
+    ]
+    assert "Compact reading view" in captured.out
     assert task_context.main(["explain", "Feature Work", "--no-search"], root=tmp_path) == 0
     assert "Route: primary" in capsys.readouterr().out
 
@@ -405,6 +409,7 @@ def test_make_targets_build_and_explain_context() -> None:
         assert "Route: general" in explained.stdout
     finally:
         destination.unlink(missing_ok=True)
+        destination.with_suffix(".read.md").unlink(missing_ok=True)
 
 
 def test_golden_evaluation_mismatch_returns_one(tmp_path: Path) -> None:
@@ -414,3 +419,377 @@ def test_golden_evaluation_mismatch_returns_one(tmp_path: Path) -> None:
     write(fixture_path, json.dumps(fixtures))
 
     assert run_task_context_eval.run(fixture_path, ROOT) == 1
+
+
+def test_expansion_merges_ranges_without_repeating_required_lines(tmp_path: Path) -> None:
+    write(tmp_path / "guide.md", "# Guide\n## Required\nrequired fact\n## Extra\nextra fact\nlast fact\n")
+    route_manifest(tmp_path, required=[{
+        "path": "guide.md", "category": "guide", "sections": ["Required"],
+    }], max_docs=1)
+    original = engine.build_task_context("feature", tmp_path, use_search=False).selected[0].excerpt
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False,
+        expand_sources=[("guide.md", 2, 5), ("./guide.md", 4, 6), ("guide.md", 2, 5)],
+        reason="Read the missing fact",
+    )
+
+    assert len(result.selected) == 1
+    source = result.selected[0]
+    assert source.excerpt.startswith(original)
+    assert source.excerpt.count("required fact") == 1
+    assert source.excerpt.count("extra fact") == 1
+    assert source.excerpt.count("last fact") == 1
+    assert source.selection_reason == "required_route+explicit_expansion"
+    assert source.line_ranges == [(2, 6)]
+    assert result.expansion_notes == ["`guide.md` lines 2-5, 4-6: included."]
+
+
+def test_expansion_priority_and_same_path_document_budget(tmp_path: Path) -> None:
+    for name in ("required", "explicit", "feature-optional", "search"):
+        write(tmp_path / f"{name}.md", name + " fact\n")
+    route_manifest(
+        tmp_path, required=[{"path": "required.md", "category": "required"}],
+        optional=[{"path": "feature-optional.md", "category": "optional"}], max_docs=2,
+    )
+    result = engine.build_task_context(
+        "feature feature-optional.md", tmp_path,
+        search_provider=lambda *args: engine.SearchOutcome("ok", [engine.SearchResult("search.md", 1, 1)]),
+        expand_sources=[("required.md", 1, 1), ("explicit.md", 1, 1)], reason="Need explicit facts",
+    )
+    assert [source.path for source in result.selected] == ["required.md", "explicit.md"]
+    assert "already included" in result.expansion_notes[0]
+    assert {item.path for item in result.dropped if item.reason == "document_budget_exhausted"} == {
+        "feature-optional.md", "search.md",
+    }
+
+
+def test_expansion_budget_preserves_required_excerpt_and_reports_truncation(tmp_path: Path) -> None:
+    write(tmp_path / "guide.md", "## Required\nrequired fact\n## Extra\n" + "E" * 200)
+    route_manifest(tmp_path, required=[{
+        "path": "guide.md", "category": "guide", "sections": ["Required"],
+    }], max_chars=100)
+    required = engine.build_task_context("feature", tmp_path, use_search=False).selected[0].excerpt
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False,
+        expand_sources=[("guide.md", 3, 4)], reason="Need extra details",
+    )
+    assert result.selected[0].excerpt.startswith(required)
+    assert result.selected_chars <= 100
+    assert result.selected[0].truncated
+    assert "included with truncation" in result.expansion_notes[0]
+    assert any("Truncated context" in warning for warning in result.warnings)
+
+
+@pytest.mark.parametrize("budget,expected", [("docs", "document_budget_exhausted"), ("chars", "character_budget_exhausted")])
+def test_rejected_expansion_explains_exhausted_budget(tmp_path: Path, budget: str, expected: str) -> None:
+    write(tmp_path / "required.md", "R" * 60)
+    write(tmp_path / "extra.md", "extra\n")
+    route_manifest(
+        tmp_path, required=[{"path": "required.md", "category": "required"}],
+        max_docs=1 if budget == "docs" else 10, max_chars=60 if budget == "chars" else 40000,
+    )
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False, expand_sources=[("extra.md", 1, 1)], reason="Need extra",
+    )
+    assert [item.excerpt for item in result.selected] == ["R" * 60]
+    assert "rejected" in result.expansion_notes[0]
+    assert expected in result.expansion_notes[0]
+
+
+def test_expansion_reuses_safety_exclusions_and_range_validation(tmp_path: Path) -> None:
+    write(tmp_path / "safe.md", "one\ntwo\nthree\n")
+    write(tmp_path / ".env", "TOKEN=must-not-read\n")
+    write(tmp_path / ".agent/context-cache/cached.md", "stale text\n")
+    route_manifest(tmp_path)
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False, reason="Check missing facts",
+        expand_sources=[("../outside.md", 1, 1), ("C:/outside.md", 1, 1), (".env", 1, 1),
+                        (".agent/context-cache/cached.md", 1, 1), ("absent.md", 1, 1),
+                        ("safe.md", 0, 2), ("safe.md", 3, 2), ("safe.md", 4, 5), ("safe.md", 2, 99)],
+    )
+    assert [source.excerpt for source in result.selected] == ["two\nthree"]
+    assert any(item.reason == "excluded_by_route" for item in result.dropped)
+    assert sum(item.reason.startswith("unsafe:") for item in result.dropped) == 3
+    assert sum(item.reason.startswith("invalid_expansion_range") for item in result.dropped) == 3
+    assert any("Clipped expansion range" in warning for warning in result.warnings)
+    assert "must-not-read" not in engine.render_markdown(result)
+
+
+def test_expansion_redacts_reason_and_excerpt_in_both_renderers(tmp_path: Path) -> None:
+    write(tmp_path / "safe.md", "token=source-value\nhttps://name:password@example.test/\n")
+    route_manifest(tmp_path)
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False, expand_sources=[("safe.md", 1, 2)],
+        reason="Resolve api_key=reason-value and https://name:secret@example.test/",
+    )
+    for rendered in (engine.render_markdown(result), engine.render_explanation(result)):
+        assert "reason-value" not in rendered
+        assert "name:secret" not in rendered
+        assert "source-value" not in rendered
+        assert "name:password" not in rendered
+        assert "Reason: Resolve api_key=<REDACTED-SECRET>" in rendered
+    assert result.selected[0].redactions == {"url_credentials": 1, "secret_assignment": 1}
+
+
+def test_expansion_identity_is_normalized_and_always_rereads_local_source(tmp_path: Path) -> None:
+    write(tmp_path / "nested/extra.md", "one\ntwo\nthree\n")
+    route_manifest(tmp_path)
+    basic = engine.build_task_context("Feature Work", tmp_path, use_search=False)
+    first = engine.build_task_context(
+        "Feature Work", tmp_path, use_search=False,
+        expand_sources=[("nested\\extra.md", 1, 2), ("nested/extra.md", 2, 3)], reason="Missing fact",
+    )
+    destination = engine.materialize_bundle(tmp_path, first)
+    destination.write_text("malicious old cache\n", encoding="utf-8")
+    write(tmp_path / "nested/extra.md", "one\nupdated\nthree\n")
+    second = engine.build_task_context(
+        " feature   work ", tmp_path, use_search=False,
+        expand_sources=[("nested/extra.md", 2, 3), ("nested/extra.md", 1, 2)], reason="Missing   fact",
+    )
+    different_reason = engine.build_task_context(
+        "feature work", tmp_path, use_search=False,
+        expand_sources=[("nested/extra.md", 1, 3)], reason="Another fact",
+    )
+    different_range = engine.build_task_context(
+        "feature work", tmp_path, use_search=False,
+        expand_sources=[("nested/extra.md", 1, 2)], reason="Missing fact",
+    )
+    assert basic.task_hash == engine.task_hash("feature work")
+    assert first.task_hash == second.task_hash != basic.task_hash
+    assert different_reason.task_hash != second.task_hash != different_range.task_hash
+    assert first.selected[0].source_hash != second.selected[0].source_hash
+    assert second.selected[0].excerpt == "one\nupdated\nthree"
+    assert engine.materialize_bundle(tmp_path, second) == destination
+    assert "malicious" not in destination.read_text(encoding="utf-8")
+    assert list(destination.parent.iterdir()) == [destination]
+
+
+def test_cli_expansion_requires_reason_and_accepts_repeated_ranges(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    write(tmp_path / "extra.md", "one\ntwo\nthree\n")
+    route_manifest(tmp_path)
+    base = ["explain", "feature", "--no-search"]
+    assert task_context.main(base + ["--expand-source", "extra.md", "1", "2"], root=tmp_path) == 2
+    assert "requires a non-empty --reason" in capsys.readouterr().err
+    assert task_context.main(base + ["--reason", "unused"], root=tmp_path) == 2
+    assert task_context.main(base + ["--expand-source", "extra.md", "first", "2", "--reason", "fact"], root=tmp_path) == 2
+    capsys.readouterr()
+    assert task_context.main(base + [
+        "--expand-source", "extra.md", "1", "2", "--expand-source", "extra.md", "2", "3",
+        "--reason", "Missing details",
+    ], root=tmp_path) == 0
+    assert "`extra.md` lines 1-2, 2-3: included." in capsys.readouterr().out
+    assert not (tmp_path / ".agent/context-cache").exists()
+
+
+def test_expansion_partial_section_fallback_and_windows_lines(tmp_path: Path) -> None:
+    (tmp_path / "guide.md").write_bytes(b"Intro\r\n## A\r\nA fact\r\n\r\n## B\r\nB fact\r\n")
+    route_manifest(tmp_path, required=[{"path": "guide.md", "category": "guide", "sections": ["A"]}])
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False,
+        expand_sources=[("guide.md", 1, 6)], reason="Need rest of guide",
+    )
+    assert result.selected[0].excerpt.count("A fact") == 1
+    assert result.selected[0].excerpt.count("B fact") == 1
+    assert result.selected[0].excerpt.startswith("## A\r\nA fact")
+    route_manifest(tmp_path, required=[{"path": "guide.md", "category": "guide", "sections": ["Missing"]}])
+    fallback = engine.build_task_context(
+        "feature", tmp_path, use_search=False, expand_sources=[("guide.md", 1, 6)], reason="Need guide",
+    )
+    assert "already included" in fallback.expansion_notes[0]
+
+
+def test_expansion_distinguishes_heading_named_all_from_full_file(tmp_path: Path) -> None:
+    write(tmp_path / "guide.md", "## all\nall section\n## Other\nother section\n")
+    route_manifest(tmp_path, required=[{"path": "guide.md", "category": "guide", "sections": ["all"]}])
+    result = engine.build_task_context(
+        "feature", tmp_path, use_search=False, expand_sources=[("guide.md", 3, 4)], reason="Need other section",
+    )
+    assert result.selected[0].excerpt.count("all section") == 1
+    assert "other section" in result.selected[0].excerpt
+
+
+def test_truncated_required_source_does_not_claim_omitted_expansion_is_included(tmp_path: Path) -> None:
+    write(tmp_path / "guide.md", "intro\n" * 26 + "requested last fact\n")
+    route_manifest(tmp_path, required=[{"path": "guide.md", "category": "guide"}], max_chars=70)
+    result = engine.build_task_context("feature", tmp_path, use_search=False,
+        expand_sources=[("guide.md", 27, 27)], reason="Need final fact")
+    assert "requested last fact" not in result.selected[0].excerpt
+    assert "already included" not in result.expansion_notes[0]
+    assert "character_budget_exhausted" in result.expansion_notes[0]
+    assert result.selected_chars <= 70
+
+
+@pytest.mark.parametrize("exists", [False, True])
+def test_expansion_path_is_redacted_in_all_output(tmp_path: Path, capsys, exists: bool) -> None:
+    filename = "api_key=FAKE-ONLY-REVIEW"
+    route_manifest(tmp_path)
+    if exists:
+        write(tmp_path / filename, "ordinary text\n")
+    result = engine.build_task_context("feature", tmp_path, use_search=False,
+        expand_sources=[(filename, 1, 1)], reason="Need context")
+    for output in (engine.render_markdown(result), engine.render_explanation(result), "\n".join(result.warnings)):
+        assert "FAKE-ONLY-REVIEW" not in output
+    assert task_context.main(["build", "feature", "--no-search", "--expand-source", filename, "1", "1", "--reason", "Need context"], root=tmp_path) == 0
+    captured = capsys.readouterr()
+    assert "FAKE-ONLY-REVIEW" not in captured.out + captured.err
+
+
+@pytest.mark.parametrize("destination", ["secrets/source.txt", ".agent/context-cache/source.txt"])
+def test_expansion_rechecks_resolved_alias_against_secret_and_exclusion_policy(tmp_path: Path, monkeypatch, destination: str) -> None:
+    route_manifest(tmp_path)
+    write(tmp_path / destination, "FAKE-CREDENTIAL-MUST-NOT-BE-READ\n")
+    alias = tmp_path / "public/source.txt"
+    original = Path.resolve
+    # Portable simulation of filesystem alias resolution; does not require Windows symlink privilege.
+    def resolve(path, *args, **kwargs):
+        if path == alias:
+            return original(tmp_path / destination)
+        return original(path, *args, **kwargs)
+    monkeypatch.setattr(Path, "resolve", resolve)
+    result = engine.build_task_context("feature", tmp_path, use_search=False,
+        expand_sources=[("public/source.txt", 1, 1)], reason="Read alias")
+    assert not result.selected
+    assert "FAKE-CREDENTIAL-MUST-NOT-BE-READ" not in engine.render_markdown(result)
+    assert "rejected" in result.expansion_notes[0]
+
+
+def test_login_regression_omits_unrelated_agent_evaluation_tests() -> None:
+    result = engine.build_task_context("Fix a failing login regression", ROOT, use_search=False)
+    selected = {source.path for source in result.selected}
+    assert "tests/agent/test_decision_advice.py" not in selected
+    assert "tests/agent/test_behavior_eval.py" not in selected
+    assert {source.origin for source in result.selected} == {"routed-required"}
+
+
+@pytest.mark.parametrize("task,path,content", [
+    ("feature fix payments module", "tests/test_payments.py", "unrelated content\n"),
+    ("feature inspect calculate_total()", "helpers.py", "def calculate_total():\n    return 42\n"),
+    ("feature fix _normalize_expansions", "helpers.py", "def _normalize_expansions():\n    return []\n"),
+    ("feature inspect f()", "helpers.py", "def f():\n    return 42\n"),
+    ("feature inspect test_decision_advice.py", "tests/test_decision_advice.py", "unrelated content\n"),
+])
+def test_concrete_module_path_and_symbol_optional_matches_survive(tmp_path: Path, task: str, path: str, content: str) -> None:
+    write(tmp_path / path, content)
+    route_manifest(tmp_path, optional=[{"path": path, "category": "test"}])
+    result = engine.build_task_context(task, tmp_path, use_search=False)
+    assert [source.path for source in result.selected] == [path]
+
+
+def test_optional_incidental_word_cannot_select_a_large_file(tmp_path: Path) -> None:
+    write(tmp_path / "unrelated.py", "# login mentioned once\n" + "other content\n" * 1000)
+    route_manifest(tmp_path, optional=[{"path": "unrelated.py", "category": "test"}])
+    result = engine.build_task_context("feature fix login regression", tmp_path, use_search=False)
+    assert not result.selected
+    assert result.dropped[0].reason == "no_task_relevance"
+
+
+def test_large_optional_source_uses_relevant_windows_and_whole_file_hash(tmp_path: Path) -> None:
+    source = "# early unrelated material\n" * 400 + "def calculate_total():\n    return 42\n" + "# later unrelated\n" * 400
+    write(tmp_path / "helpers.py", source)
+    route_manifest(tmp_path, optional=[{"path": "helpers.py", "category": "test"}])
+    result = engine.build_task_context("feature fix calculate_total", tmp_path, use_search=False)
+    selected = result.selected[0]
+    assert "def calculate_total" in selected.excerpt
+    assert selected.char_count <= engine.OPTIONAL_EXCERPT_CHARS
+    assert len(selected.excerpt.splitlines()) <= engine.OPTIONAL_EXCERPT_LINES
+    assert selected.source_hash == hashlib.sha256((tmp_path / "helpers.py").read_bytes()).hexdigest()
+    assert selected.line_ranges[0][0] > 1
+    assert any("remaining content omitted" in warning for warning in result.warnings)
+
+
+def test_compact_complete_budget_prioritizes_required_text_and_discloses_omissions(tmp_path: Path) -> None:
+    write(tmp_path / "required.md", "Required fact. " * 15)
+    write(tmp_path / "payments.md", "Optional payments detail. " * 45)
+    route_manifest(tmp_path, required=[{"path": "required.md", "category": "required"}],
+                   optional=[{"path": "payments.md", "category": "optional"}], max_chars=1600)
+    result = engine.build_task_context("feature payments", tmp_path, use_search=False)
+    rendered = engine.render_compact_markdown(result)
+    assert len(rendered) <= result.max_chars
+    assert result.selected[0].excerpt in rendered
+    assert "Clipped in compact view" in rendered or "Omitted from compact view" in rendered
+    for source in result.selected:
+        assert source.path in rendered and source.source_hash[:12] in rendered
+    assert "complete audit may be larger" in engine.render_markdown(result)
+    assert len(engine.render_markdown(result)) > result.max_chars
+
+
+def test_compact_aggregates_drops_without_hiding_warnings_or_gaps(tmp_path: Path) -> None:
+    route_manifest(tmp_path, required=[{"path": "missing.md", "category": "required"}])
+    result = engine.build_task_context("feature", tmp_path, use_search=False)
+    result.dropped.extend(engine.DroppedSource(f"unrelated-{index}.md", "routed-optional", "no_task_relevance") for index in range(500))
+    compact = engine.render_compact_markdown(result)
+    assert "501 dropped candidates" in compact
+    assert "no_task_relevance=500" in compact
+    assert "unrelated-499.md" not in compact
+    assert all(warning in compact for warning in result.warnings)
+    assert all(gap in compact for gap in result.gaps)
+    assert len(compact) < 2000
+    assert "unrelated-499.md" in engine.render_markdown(result)
+
+
+def test_compact_overflow_fails_explicitly_retaining_full_audit(tmp_path: Path, capsys) -> None:
+    write(tmp_path / "required.md", "R" * 300)
+    route_manifest(tmp_path, required=[{"path": "required.md", "category": "required"}], max_chars=300)
+    cache = tmp_path / ".agent/context-cache/task-context"
+    reading = cache / f"{engine.task_hash('feature')}.read.md"
+    write(reading, "obsolete reading artifact")
+    assert task_context.main(["build", "feature", "--no-search"], root=tmp_path) == 2
+    assert "Required content was not silently omitted" in capsys.readouterr().err
+    assert not reading.exists()
+    audit = cache / f"{engine.task_hash('feature')}.md"
+    assert audit.exists() and "R" * 300 in audit.read_text(encoding="utf-8")
+    assert task_context.main(["build", "feature", "--no-search", "--view", "full", "--stdout"], root=tmp_path) == 0
+    assert "Full audit view" in capsys.readouterr().out
+
+
+def test_compact_memory_projection_uses_exact_hashed_snapshot(tmp_path: Path) -> None:
+    entry = {"id": "lesson", "path": ".agent/memory/lesson.md", "type": "semantic", "scope": "project",
+             "summary": "Current useful lesson", "keywords": [], "confidence": "high", "last_verified": "2026-09-23",
+             "source_task": ".agent/task.md", "evidence": [{"path": "source.md", "sha256": "0" * 64}]}
+    text = json.dumps({"version": 1, "memories": [entry]})
+    write(tmp_path / ".agent/memory/index.json", text)
+    write(tmp_path / ".agent/memory/lesson.md", "lesson")
+    write(tmp_path / "source.md", "changed source")
+    route_manifest(tmp_path, required=[{"path": ".agent/memory/index.json", "category": "memory-index"}])
+    result = engine.build_task_context("feature memory", tmp_path, use_search=False)
+    write(tmp_path / ".agent/memory/index.json", "invalid newer index")
+    compact = engine.render_compact_markdown(result)
+    assert "Current useful lesson" in compact and "needs-reverification" in compact
+    assert "0" * 64 not in compact
+    assert "Compact memory projection" in compact
+    assert result.selected[0].source_hash == hashlib.sha256(text.encode()).hexdigest()
+    assert "0" * 64 in engine.render_markdown(result)
+    assert "invalid newer index" not in compact
+
+
+def test_compact_preserves_explicit_expansion_and_redaction(tmp_path: Path) -> None:
+    write(tmp_path / "extra.md", "token=source-secret\nexplicit fact\n")
+    route_manifest(tmp_path)
+    result = engine.build_task_context("feature", tmp_path, use_search=False,
+        expand_sources=[("extra.md", 1, 2)], reason="Resolve token=reason-secret")
+    compact = engine.render_compact_markdown(result)
+    assert "explicit fact" in compact and "explicit_expansion" in compact
+    assert "source-secret" not in compact and "reason-secret" not in compact
+    assert all(warning in compact for warning in result.warnings)
+
+
+def test_large_optional_line_redacts_before_clipping(tmp_path: Path) -> None:
+    password = "FAKE-ONLY-CREDENTIAL-" * 400
+    write(tmp_path / "payments.md", f"https://name:{password}@example.test/\n")
+    route_manifest(tmp_path, optional=[{"path": "payments.md", "category": "optional"}])
+    result = engine.build_task_context("feature payments", tmp_path, use_search=False)
+    assert "FAKE-ONLY-CREDENTIAL" not in engine.render_compact_markdown(result)
+    assert "FAKE-ONLY-CREDENTIAL" not in engine.render_markdown(result)
+    assert result.selected[0].redactions == {"url_credentials": 1}
+
+
+def test_full_only_rebuild_invalidates_old_compact_companion(tmp_path: Path) -> None:
+    write(tmp_path / "required.md", "old source")
+    route_manifest(tmp_path, required=[{"path": "required.md", "category": "required"}])
+    assert task_context.main(["build", "feature", "--no-search"], root=tmp_path) == 0
+    reading = tmp_path / ".agent/context-cache/task-context" / f"{engine.task_hash('feature')}.read.md"
+    assert reading.exists()
+    write(tmp_path / "required.md", "new source")
+    assert task_context.main(["build", "feature", "--no-search", "--view", "full"], root=tmp_path) == 0
+    assert not reading.exists()
+    assert "new source" in reading.with_name(f"{engine.task_hash('feature')}.md").read_text(encoding="utf-8")

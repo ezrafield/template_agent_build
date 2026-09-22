@@ -72,6 +72,8 @@ def detect_commands() -> dict[str, str]:
             "task-context",
             "task-context-explain",
             "task-context-eval",
+            "behavior-eval",
+            "advice-eval",
         ]:
             if f"{name}:" in make_text:
                 commands[name] = f"make {name}"
@@ -103,8 +105,20 @@ def write_commands(commands: dict[str, str]) -> None:
             "",
             "Task context compiler:",
             "- build: `make task-context TASK=\"describe the task\"`",
+            "- read: use the emitted compact `.read.md`; reuse it while task, route, ranges, and relevant sources are unchanged",
+            "- full audit: `python scripts/task_context.py build \"task\" --view full`",
             "- explain: `make task-context-explain TASK=\"describe the task\"`",
             "- evaluate: `make task-context-eval`",
+            "- expand: `python scripts/task_context.py build \"task\" --expand-source src/example.py 1 20 --reason \"resolve missing behavior\"`",
+            "",
+            "Reliability evaluations (offline by default):",
+            "- behavior: `python eval/behavior/run_behavior_eval.py`",
+            "- advice: `python eval/advice/run_advice_eval.py`",
+            "- skill routing: `python eval/skills/run_skill_routing_eval.py` (offline)",
+            "- live skill routing: `python eval/skills/run_skill_routing_eval.py --live --model MODEL --limit 3`",
+            "- live comparison: `python eval/behavior/run_behavior_eval.py --live --model MODEL --baseline-ref REVISION`",
+            "- Jev shadow: `python eval/advice/run_advice_eval.py --live` (requires TYPESAFE_API_KEY)",
+            "- Details and limits: `docs/agent/RELIABILITY_EVALS.md`",
             "",
             "Optional compact-output helpers:",
             "- rtk-gain: `make rtk-gain`",
@@ -115,6 +129,7 @@ def write_commands(commands: dict[str, str]) -> None:
             "- typecheck-compact: `make typecheck-compact`",
             "",
             "Memory helpers:",
+            "- lookup: `python scripts/memory_lookup.py \"task\"` (summaries and current evidence status)",
             "- extract-task-memory: `make extract-task-memory TASK=.agent/tasks/<task>.md`",
             "- validate-memory-links: `make validate-memory-links`",
             "- audit-memory-staleness: `make audit-memory-staleness`",
@@ -138,9 +153,10 @@ def ensure_task_readme() -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "# Task Logs\n\n"
-        "Use one markdown file per multi-step task. Include the goal, docs read, files inspected, "
-        "commands run, compressed-output usage, raw reruns, verification, memory extraction notes, "
-        "and follow-up risk.\n",
+        "Use concise checkpoints for multi-step work or handoff. Link existing plan goals and "
+        "verification instead of duplicating them; if the plan already captures needed state, "
+        "no second narrative is needed. Record changed files, outstanding findings, verified "
+        "revision, external effects, and next action.\n",
         encoding="utf-8",
     )
 

@@ -1,0 +1,7 @@
+{
+  "id": "bug-fix",
+  "request": "Fix mean() so any iterable, including a generator, produces its arithmetic mean; empty input must raise ValueError. Preserve the public function name.",
+  "permitted_changes": [
+    "src/stats.py"
+  ]
+}

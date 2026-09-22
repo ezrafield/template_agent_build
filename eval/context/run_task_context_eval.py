@@ -16,6 +16,7 @@ from scripts.task_context_engine import (  # noqa: E402
     TaskContextError,
     build_task_context,
     load_route_manifest,
+    render_compact_markdown,
 )
 
 
@@ -82,6 +83,12 @@ def evaluate_fixture(fixture: dict, root: Path) -> tuple[list[str], object]:
         errors.append(f"selected {len(result.selected)} documents, limit is {fixture['max_docs']}")
     if result.selected_chars > fixture["max_chars"]:
         errors.append(f"selected {result.selected_chars} characters, limit is {fixture['max_chars']}")
+    try:
+        reading_chars = len(render_compact_markdown(result))
+        if reading_chars > fixture["max_chars"]:
+            errors.append(f"complete reading view has {reading_chars} characters, limit is {fixture['max_chars']}")
+    except TaskContextError as exc:
+        errors.append(f"compact reading view unavailable: {exc}")
     return errors, result
 
 

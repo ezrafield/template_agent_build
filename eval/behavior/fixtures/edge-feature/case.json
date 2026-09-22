@@ -1,0 +1,7 @@
+{
+  "id": "edge-feature",
+  "request": "Add optional positive integer size=2 to chunks(values, size=2). Yield a final partial chunk, work with generators, and reject bool, zero, negative, or noninteger size with ValueError.",
+  "permitted_changes": [
+    "src/chunks.py"
+  ]
+}

@@ -69,7 +69,14 @@ def extract_agent_json(output: str) -> dict:
     return parsed
 
 
-def route_case(codex: str, root: Path, case: dict, known: set[str]) -> set[str]:
+def route_case(
+    codex: str,
+    root: Path,
+    case: dict,
+    known: set[str],
+    model: str,
+    timeout: int = 300,
+) -> set[str]:
     prompt = (
         "This is a skill-routing evaluation. Do not perform the task and do not edit files. "
         "Select the repository skills you would activate for the quoted request. Return only "
@@ -83,6 +90,8 @@ def route_case(codex: str, root: Path, case: dict, known: set[str]) -> set[str]:
             codex,
             "exec",
             "--json",
+            "--model",
+            model,
             "--sandbox",
             "read-only",
             "--ephemeral",
@@ -97,6 +106,7 @@ def route_case(codex: str, root: Path, case: dict, known: set[str]) -> set[str]:
         check=False,
         capture_output=True,
         text=True,
+        timeout=timeout,
     )
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip())
@@ -111,11 +121,19 @@ def route_case(codex: str, root: Path, case: dict, known: set[str]) -> set[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Validate or run the Codex skill-routing corpus.")
+    parser = argparse.ArgumentParser(description="Validate skill-routing fixtures offline; opt in to Codex trials with --live --model MODEL.")
     parser.add_argument("--root", default=str(ROOT), help="Repository root.")
-    parser.add_argument("--validate-only", action="store_true", help="Validate fixtures without invoking Codex.")
-    parser.add_argument("--limit", type=int, help="Run only the first N cases.")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--live", action="store_true", help="Run authenticated Codex routing trials after fixture validation.")
+    mode.add_argument("--validate-only", action="store_true", help="Alias for the default offline fixture validation; conflicts with --live.")
+    parser.add_argument("--model", help="Explicit Codex model required for --live; does not enable live trials by itself.")
+    parser.add_argument("--limit", type=int, help="Run only the first N live cases; offline validation always checks the full corpus.")
+    parser.add_argument("--timeout", type=int, default=300, help="Maximum seconds per live case; no retries.")
     args = parser.parse_args(argv)
+    if args.timeout < 1 or (args.limit is not None and args.limit < 1):
+        parser.error("--timeout and --limit must be positive")
+    if args.live and (not args.model or not args.model.strip()):
+        parser.error("--live requires an explicit non-empty --model")
     root = Path(args.root).resolve()
     cases = json.loads((root / CASES.relative_to(ROOT)).read_text(encoding="utf-8"))
     errors = validate_cases(root, cases)
@@ -124,7 +142,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"FAIL {error}", file=sys.stderr)
         return 1
     print(f"Skill routing fixtures valid: {len(cases)} cases, {len(skill_names(root))} skills.")
-    if args.validate_only:
+    if not args.live:
         return 0
 
     codex = shutil.which("codex")
@@ -140,18 +158,22 @@ def main(argv: list[str] | None = None) -> int:
     collision_cases = 0
     failures: list[str] = []
     for case in selected_cases:
+        expected = set(case["expected"])
+        # A failed invocation is a miss, never removed from recall's denominator.
+        expected_total += len(expected)
         try:
-            selected = route_case(codex, root, case, known)
-        except (RuntimeError, ValueError, json.JSONDecodeError) as exc:
+            selected = route_case(codex, root, case, known, args.model, args.timeout)
+        except subprocess.TimeoutExpired:
+            failures.append(f"{case['id']}: timed out after {args.timeout}s (no retry)")
+            continue
+        except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
             failures.append(f"{case['id']}: {exc}")
             continue
-        expected = set(case["expected"])
         allowed = set(case["allowed"])
         forbidden = set(case["forbidden"])
         hits = selected & expected
         unexpected = selected - expected - allowed
         forbidden_hits = selected & forbidden
-        expected_total += len(expected)
         expected_hits += len(hits)
         unexpected_total += len(unexpected)
         forbidden_total += len(forbidden_hits)
@@ -167,6 +189,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"recall={recall:.3f}")
     print(f"collision_rate={collision_rate:.3f}")
     print(f"forbidden_activations={forbidden_total}")
+    print(f"completed_cases={len(selected_cases) - len(failures)}")
+    print(f"failed_cases={len(failures)}")
+    print("Live skill-routing quality metrics are informational; failures remain explicit.")
     for failure in failures:
         print(f"FAIL {failure}", file=sys.stderr)
     return 1 if failures else 0
