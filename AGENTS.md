@@ -2,7 +2,7 @@
 
 ## Project Purpose
 
-This agent-native template demonstrates progressive context, skills, deterministic validation, and project memory.
+Help agents complete tasks effectively with low context, execution, and maintenance cost. Keep tests and docs proportional; research harnesses are optional.
 
 ## Instruction Hierarchy
 
@@ -25,7 +25,7 @@ This agent-native template demonstrates progressive context, skills, determinist
 4. Query memory with `python scripts/memory_lookup.py "<task>"`; verify relevant cards against current source.
 5. Before full-file reads, use `rg` for exact checks and symbol tools for references or refactors.
 6. Before editing, identify the selected files, why they matter, and the main uncertainty or risk.
-7. Make the smallest safe change and update tests or docs when behavior changes.
+7. Make the smallest complete change. Use `test-scope` when adding/pruning tests; reuse coverage and update only necessary docs.
 8. Run targeted checks before broader checks.
 9. Report changed files, commands run, and remaining risks.
 
@@ -53,7 +53,6 @@ This agent-native template demonstrates progressive context, skills, determinist
 - Lead with the result, decision, or current blocker.
 - Keep progress updates concise and concrete.
 - State material assumptions and uncertainty explicitly.
-- For code changes, report files changed, checks run, and remaining risks.
 
 ## Definition of Done
 

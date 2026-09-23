@@ -1,0 +1,24 @@
+[
+  {
+    "id": "truncate-fractional-mean",
+    "description": "Round a valid fractional mean toward zero.",
+    "edits": [
+      {
+        "path": "src/stats.py",
+        "old": "return sum(values) / len(values)",
+        "new": "return int(sum(values) / len(values))"
+      }
+    ]
+  },
+  {
+    "id": "accept-empty-input",
+    "description": "Return zero instead of rejecting an empty iterable.",
+    "edits": [
+      {
+        "path": "src/stats.py",
+        "old": "raise ValueError(\"empty input\")",
+        "new": "return 0"
+      }
+    ]
+  }
+]

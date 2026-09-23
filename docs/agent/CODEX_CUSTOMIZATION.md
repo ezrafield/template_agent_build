@@ -76,6 +76,10 @@ permissions, approvals, and hooks.
 
 ## Evaluation
 
+Routine CI runs the core pytest suite, compilation, and asset validation.
+Research evaluations and Codex runtime checks below are explicit local commands
+or part of the manual `agent-doc-check` workflow, not routine delivery gates.
+
 - `make validate-agent-assets`: deterministic instruction, skill, manifest,
   plan-system, and guardrail-template checks.
 - `make codex-runtime-check`: Codex feature and `execpolicy` fixtures; no API

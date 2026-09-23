@@ -2,7 +2,7 @@
   "schema_version": 2,
   "name": "agent-native-template",
   "version": "0.5.0",
-  "description": "Progressive-context agent kit with measurable reliability and optional shadow advice.",
+  "description": "Lightweight agent kit for effective task completion with bounded context and minimal maintenance.",
   "runtime": {
     "primary_host": "codex",
     "supported_hosts": ["codex", "claude-code"],
@@ -80,6 +80,14 @@
     {
       "name": "task-handoff",
       "path": ".agents/skills/task-handoff",
+      "required": true,
+      "hosts": ["codex"],
+      "required_commands": [],
+      "optional_commands": []
+    },
+    {
+      "name": "test-scope",
+      "path": ".agents/skills/test-scope",
       "required": true,
       "hosts": ["codex"],
       "required_commands": [],

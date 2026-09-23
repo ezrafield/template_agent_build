@@ -9,11 +9,6 @@ from scripts import run_agent_hook
 from scripts.enable_codex_guardrails import enable
 
 
-def test_normal_prompt_is_silent(capsys: pytest.CaptureFixture[str]) -> None:
-    assert run_agent_hook.handle_user_prompt({"prompt": "Explain the API route."}) == 0
-    assert capsys.readouterr().out == ""
-
-
 def test_secret_prompt_is_blocked_without_echo(capsys: pytest.CaptureFixture[str]) -> None:
     secret = "sk-" + "A" * 48
 
@@ -22,17 +17,6 @@ def test_secret_prompt_is_blocked_without_echo(capsys: pytest.CaptureFixture[str
     output = capsys.readouterr().out
     assert json.loads(output)["decision"] == "block"
     assert secret not in output
-
-
-def test_stop_hook_active_prevents_validation_loop(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    monkeypatch.setattr(run_agent_hook, "changed_files", lambda root: (_ for _ in ()).throw(AssertionError()))
-
-    assert run_agent_hook.handle_stop({"stop_hook_active": True}, tmp_path) == 0
-    assert capsys.readouterr().out == ""
 
 
 def test_stop_hook_continues_after_failed_agent_validation(

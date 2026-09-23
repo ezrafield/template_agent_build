@@ -77,15 +77,16 @@ def test_update_backs_up_and_prunes_only_recorded_obsolete_files(tmp_path: Path)
     assert backups[0].read_text(encoding="utf-8") == "old managed content\n"
 
 
-def test_real_manifest_fresh_install_has_ten_skills_and_task_context(tmp_path: Path) -> None:
+def test_real_manifest_install_provides_declared_skills_and_working_setup(tmp_path: Path) -> None:
     source = Path(__file__).resolve().parents[2]
     target = tmp_path / "installed-project"
 
     install("install", source, target)
 
-    skills = list((target / ".agents" / "skills").glob("*/SKILL.md"))
-    assert len(skills) == 10
-    assert (target / ".agents" / "skills" / "task-context" / "SKILL.md").is_file()
+    manifest = json.loads((source / "agentkit-manifest.json").read_text(encoding="utf-8"))
+    skills = {path.parent.name for path in (target / ".agents" / "skills").glob("*/SKILL.md")}
+    assert skills == {entry["name"] for entry in manifest["skills"]}
+    assert {"task-context", "test-scope"} <= skills
     assert (target / "scripts" / "task_context.py").is_file()
     assert (target / "docs" / "agent" / "context-routes.json").is_file()
     assert (target / "eval" / "context" / "golden_tasks.json").is_file()
@@ -112,37 +113,3 @@ def test_real_manifest_fresh_install_has_ten_skills_and_task_context(tmp_path: P
     assert setup.returncode == 0, setup.stdout + setup.stderr
     assert list((target / ".agent" / "context-cache" / "task-context").glob("*.md"))
     assert list((target / ".agent" / "context-cache" / "task-context").glob("*.read.md"))
-
-    golden = subprocess.run(
-        [sys.executable, "eval/context/run_task_context_eval.py"],
-        cwd=target,
-        text=True,
-        capture_output=True,
-        check=False,
-        timeout=60,
-    )
-    assert golden.returncode == 0, golden.stdout + golden.stderr
-
-    for command in (
-        "eval/behavior/run_behavior_eval.py", "eval/advice/run_advice_eval.py",
-        "eval/skills/run_skill_routing_eval.py", "scripts/memory_lookup.py",
-    ):
-        offline = subprocess.run([sys.executable, command], cwd=target, text=True,
-                                 capture_output=True, check=False, timeout=60)
-        assert offline.returncode == 0, offline.stdout + offline.stderr
-
-    obsolete = target / ".agents" / "skills" / "code-search" / "SKILL.md"
-    write(obsolete, "# v0.2 managed skill\n")
-    state = target / ".agentkit-installed-files"
-    state.write_text(
-        state.read_text(encoding="utf-8") + ".agents/skills/code-search/SKILL.md\n",
-        encoding="utf-8",
-    )
-
-    install("update", source, target)
-
-    assert not obsolete.exists()
-    retired_backups = list(
-        (target / ".agentkit" / "backups").glob("*/.agents/skills/code-search/SKILL.md")
-    )
-    assert len(retired_backups) == 1

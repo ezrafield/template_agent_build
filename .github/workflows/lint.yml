@@ -14,4 +14,4 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m compileall -q src scripts eval tests
-      - run: python scripts/check_agent_rules.py
+      # agent-doc-check.yml owns agent-asset validation.

@@ -3,11 +3,17 @@
 Use this file to understand the smallest useful context for the task.
 `docs/agent/context-routes.json` is the validated machine-readable source for
 route IDs, triggers, ordering, source selections, section slices, and
-exclusions. For non-trivial work, compile and inspect the route with:
+exclusions. Reuse inspected context for the same task and route while relevant
+sources and requested ranges remain current. Otherwise, build it with:
 
 ```bash
 python scripts/task_context.py build "<task>"
 ```
+
+Read the emitted compact `.read.md` view first. Use `--view full` or `explain`
+when detailed selection or provenance is needed. Already-inspected excerpts
+satisfy the reading lists below; load only missing or changed material.
+Use `python scripts/memory_lookup.py "<task>"` for concise memory lookup.
 
 Routed requirements remain authoritative. Optional Semble matches may fill
 remaining capacity, but the compiler re-reads their referenced local lines.
@@ -88,7 +94,7 @@ Read:
 1. `docs/agent/MEMORY_POLICY.md`
 2. `docs/agent/MEMORY_RETRIEVAL.md`
 3. `docs/agent/MEMORY_PROMOTION_RULES.md`
-4. `.agent/memory/index.json`
+4. `.agent/memory/index.json` (compact projection first; inspect the full index when auditing or changing evidence)
 5. Relevant memory cards under `.agent/memory/semantic/` or `.agent/memory/procedural/`
 
 ## For Agent Kit Setup, Install, Or Audit

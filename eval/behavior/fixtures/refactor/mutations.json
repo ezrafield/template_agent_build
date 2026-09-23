@@ -1,0 +1,24 @@
+[
+  {
+    "id": "round-discount",
+    "description": "Change integer-floor discount rounding while extracting the shared helper.",
+    "edits": [
+      {
+        "path": "src/pricing.py",
+        "old": "cents * percent // 100",
+        "new": "round(cents * percent / 100)"
+      }
+    ]
+  },
+  {
+    "id": "leave-duplicate-calculation",
+    "description": "Leave the invoice calculation duplicated while adding an unused helper for that path.",
+    "edits": [
+      {
+        "path": "src/pricing.py",
+        "old": "    return discount_cents(cents, percent)\n",
+        "new": "    return cents - cents * percent // 100\n"
+      }
+    ]
+  }
+]

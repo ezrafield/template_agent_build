@@ -25,6 +25,25 @@ for an intentional override, and `--no-search` for reproducible route-only
 selection. Routed requirements are selected before explicit expansion, optional
 routed sources, and finally Semble suggestions; they cannot be displaced by them.
 
+## Classification Rules
+
+Classification first checks optional manifest `intent_rules` for the requested
+workflow, then falls back to weighted trigger phrases. This lets a request to
+review a database diff select review context, or a request to repair an API
+regression select bug-fix context. A rule is a list of phrase groups: at least
+one phrase in every group must match. For example,
+`[[["review", "inspect"], ["diff", "patch"]]]` matches either action with either
+subject. Rules are literal boundary-aware phrases, not model calls or regular
+expressions. Manifests without these rules keep keyword classification.
+
+If several workflows match, or the best keyword scores tie, the bundle and
+`explain` disclose the competing route IDs. Weighted trigger score then manifest
+order selects one route deterministically; its required sources remain intact.
+No matching rule or trigger produces a visible general-context fallback.
+Inspect ambiguous or fallback selections before proceeding and use `--route ID`
+to choose intentionally. An explicit route bypasses inferred classification.
+These rules cover reviewed phrasing, not arbitrary natural-language intent.
+
 ## Reading And Audit Views
 
 `build` defaults to `--view compact`: it writes a bounded `<task-hash>.read.md`
@@ -52,8 +71,13 @@ or shortened summaries are disclosed; verify relevant cards against source.
 Optional relevance ignores generic workflow words such as "fix", "failing",
 "regression", and "test". Concrete paths, module names, and named symbols retain
 priority; body-only matches need multiple informative task terms. Large optional
-files use relevant line windows bounded to 100 source lines and 6,000 excerpt
-characters. Their hashes still cover the complete original file. A window is
+files use relevant line windows bounded to 100 lines and 6,000 excerpt characters.
+Named definitions come first, then explicit identifier matches, then ordinary
+word matches. Windows retain relevance order, merge adjacent selected lines,
+and exclude overlaps; consult their displayed source ranges rather than assuming
+the excerpt follows file order. This keeps a later named function ahead of early
+generic comments when capacity runs out. Hashes still cover the complete original
+file, and redaction and required-source priority are unchanged. A window is
 navigation context; request explicit expansion for additional implementation
 details instead of assuming omitted lines are irrelevant.
 

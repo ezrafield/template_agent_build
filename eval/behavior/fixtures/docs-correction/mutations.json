@@ -1,0 +1,46 @@
+[
+  {
+    "id": "invalid-limit-zero",
+    "description": "Document an example below the parser's inclusive valid range.",
+    "edits": [
+      {
+        "path": "docs/usage.md",
+        "old": "--limit 10",
+        "new": "--limit 0"
+      }
+    ]
+  },
+  {
+    "id": "invalid-limit-above-range",
+    "description": "Document an example above the parser's inclusive valid range.",
+    "edits": [
+      {
+        "path": "docs/usage.md",
+        "old": "--limit 10",
+        "new": "--limit 101"
+      }
+    ]
+  },
+  {
+    "id": "invalid-format-option",
+    "description": "Use an unsupported format in an otherwise valid example.",
+    "edits": [
+      {
+        "path": "docs/usage.md",
+        "old": "--limit 10",
+        "new": "--limit 10 --format yaml"
+      }
+    ]
+  },
+  {
+    "id": "omit-runnable-example",
+    "description": "Mention --limit without documenting a runnable example.",
+    "edits": [
+      {
+        "path": "docs/usage.md",
+        "old": "Example: `python src/cli.py --limit 10`.",
+        "new": "Use the `--limit` option to select the result count."
+      }
+    ]
+  }
+]

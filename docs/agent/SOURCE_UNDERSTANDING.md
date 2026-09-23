@@ -5,10 +5,12 @@ Use CODEMAP/module cards, Semble, `rg`, optional Serena, and Understand Anything
 ## Purpose
 
 Start with the low-cost default stack:
+- A current compact task-context bundle
 - `docs/agent/CODEMAP.md`
 - Module cards
-- Semble natural-language search
 - `rg` exact confirmation
+
+Use optional Semble search when the routed context leaves a concrete discovery gap.
 
 Use Serena for symbol references, declarations, diagnostics, and safe refactors when language-server semantics matter.
 
@@ -28,12 +30,12 @@ That graph can support:
 
 ## Human Workflow
 
-1. Generate or refresh the graph.
+1. When graph-based exploration helps, reuse a current graph or generate/refresh one if it is missing or stale.
 2. Open the dashboard when visual exploration helps.
 3. Ask graph-backed questions before scanning the whole repository.
 4. Use source links from the graph to inspect actual files.
 
-Recommended commands:
+Commands for optional search and graph exploration:
 
 ```bash
 make code-search QUERY="auth service" CONTENT=all
@@ -42,20 +44,22 @@ make understand-dashboard
 make understand-search QUERY="auth service"
 ```
 
+`make understand` and `make understand-dashboard` print runtime guidance; they do
+not generate a graph or launch a dashboard. Those actions use the separately
+installed Understand Anything runtime, such as `/understand` and
+`/understand-dashboard`.
+
 If `make` is unavailable, use `python scripts/run_agent_tool.py semble search "auth service" . --content all` for Semble and the Python graph helper scripts directly.
 
 ## Agent Workflow
 
 Before broad source exploration:
 
-1. Read `docs/agent/INDEX.md`.
-2. Read `docs/agent/CODE_SEARCH.md` and this file.
-3. Read `docs/agent/CODEMAP.md` or the relevant module card.
-4. Use Semble and `rg` to identify likely files.
-5. Check whether `.understand-anything/knowledge-graph.json` exists when architecture or dependency impact matters.
-6. If it exists, search the graph before reading many files.
-7. If it does not exist or is stale, recommend `make understand`.
-8. Use targeted file reads for final verification.
+1. Follow `docs/agent/INDEX.md`: reuse a current inspected task-context bundle, or build one when the task, route, requested ranges, or relevant sources change.
+2. Read compact output first, including the relevant CODEMAP/module-card excerpts. Use `python scripts/memory_lookup.py "<task>"` for relevant memory; do not reload unchanged material for a new skill.
+3. Fill remaining gaps with `rg`, optional Semble search, and `docs/agent/CODE_SEARCH.md` as needed.
+4. When architecture or dependency relationships require graph exploration, check `.understand-anything/knowledge-graph.json` and use it if current. If that needed graph is missing or stale, use the installed runtime to generate/refresh it; `make understand` shows the runtime instructions.
+5. Verify conclusions against targeted current source reads. Open the full context audit when selection or provenance needs inspection.
 
 ## What To Commit
 
@@ -74,7 +78,7 @@ Usually ignore:
 
 ## Search Strategy
 
-For a question like "where is request validation handled?":
+When a question requires graph-based dependency exploration:
 
 1. Search node names, summaries, and tags in the graph.
 2. Follow connected edges for imports, calls, tests, and documents.
@@ -84,11 +88,9 @@ For a question like "where is request validation handled?":
 
 ## Refresh Policy
 
-Refresh the graph:
-- After adding or moving modules.
-- After large refactors.
-- Before onboarding a new human or agent.
-- Before architecture review.
-- Before asking broad codebase questions.
+Refresh only when the task will use the graph and relevant source changes have
+made it stale. Adding or moving modules and large refactors are reasons to check
+freshness before graph-based onboarding, architecture review, or broad exploration.
 
-For small isolated edits, graph refresh can wait until the end of the task.
+If targeted context and source reads answer the question, no graph generation or
+refresh is needed. A graph remains a navigation aid, not source authority.

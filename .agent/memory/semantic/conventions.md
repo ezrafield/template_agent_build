@@ -15,7 +15,7 @@ Use this memory before implementing non-trivial template or code changes.
 
 - Reuse an inspected current task-context bundle across skills for the same task and route; rebuild when the task, route, requested ranges, or relevant sources change. Read compact output first.
 - Prefer routed excerpts, targeted reads, `rg`, advisory Semble, module cards, and deterministic scripts over broad repository scans.
-- Make the smallest safe change and update tests or docs when behavior changes.
+- Make the smallest complete change. Reuse relevant coverage and update only necessary docs; use `test-scope` when adding or pruning tests.
 - Run targeted tests before broad checks.
 - Use compressed command output for noisy commands when RTK is available, and rerun raw output only when compressed output is unclear.
 - Keep long-term memory concise, reusable, and free of secrets or private data.

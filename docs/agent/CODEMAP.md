@@ -73,9 +73,6 @@ Important classes/functions:
 Public APIs:
 - `src/models/example.py` -> `Example`
 
-Tests:
-- `tests/unit/test_models.py`
-
 Risk notes:
 - Public exports may be imported by other modules; confirm references before renaming.
 - Public API or schema changes should be reflected in specs and tests.
@@ -95,9 +92,6 @@ Important classes/functions:
 
 Public APIs:
 - `src/services/example_service.py` -> `ExampleService`
-
-Tests:
-- `tests/unit/test_services.py`
 
 Risk notes:
 - Public exports may be imported by other modules; confirm references before renaming.

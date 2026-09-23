@@ -1,0 +1,24 @@
+[
+  {
+    "id": "convert-milliseconds-to-seconds",
+    "description": "Use seconds for elapsed time despite the linked millisecond contract.",
+    "edits": [
+      {
+        "path": "src/scheduler.py",
+        "old": "return now_ms - last_attempt_ms >= delay",
+        "new": "return (now_ms - last_attempt_ms) / 1000 >= delay"
+      }
+    ]
+  },
+  {
+    "id": "exclude-retry-boundary",
+    "description": "Require elapsed time to exceed rather than reach the retry delay.",
+    "edits": [
+      {
+        "path": "src/scheduler.py",
+        "old": "return now_ms - last_attempt_ms >= delay",
+        "new": "return now_ms - last_attempt_ms > delay"
+      }
+    ]
+  }
+]

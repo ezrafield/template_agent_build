@@ -1,0 +1,24 @@
+[
+  {
+    "id": "keep-stale-expiry-boundary",
+    "description": "Retain the stale strict comparison at the TTL boundary.",
+    "edits": [
+      {
+        "path": "src/cache.py",
+        "old": "now - created >= ttl",
+        "new": "now - created > ttl"
+      }
+    ]
+  },
+  {
+    "id": "omit-duplicate-card-identification",
+    "description": "Propose a correction without identifying the duplicate card to retire.",
+    "edits": [
+      {
+        "path": "docs/memory-correction.md",
+        "old": "cache-policy-copy.md is a duplicate. ",
+        "new": ""
+      }
+    ]
+  }
+]

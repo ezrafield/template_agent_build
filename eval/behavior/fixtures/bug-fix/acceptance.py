@@ -8,6 +8,8 @@ mean = module['mean']
 assert mean([1, 2, 3]) == 2
 assert mean(iter([2, 4])) == 3
 assert mean([-5, 3]) == -1
+assert mean([1, 2]) == 1.5
+assert mean(iter([-2, -1])) == -1.5
 for values in ([], iter([])):
     try:
         mean(values)

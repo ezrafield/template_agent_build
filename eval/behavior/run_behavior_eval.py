@@ -63,6 +63,28 @@ def load_cases(fixtures: Path = FIXTURES) -> list[dict]:
                 raise ValueError(f"{case['id']}: missing {name} repository files.")
         if not (manifest.parent / "acceptance.py").is_file():
             raise ValueError(f"{case['id']}: missing external acceptance checks.")
+        mutations = json.loads((manifest.parent / "mutations.json").read_text(encoding="utf-8"))
+        if not isinstance(mutations, list) or not mutations:
+            raise ValueError(f"{case['id']}: mutations must be a nonempty list.")
+        seen_mutations = set()
+        for mutation in mutations:
+            if not isinstance(mutation, dict) or not isinstance(mutation.get("id"), str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", mutation["id"]):
+                raise ValueError(f"{case['id']}: each mutation needs a stable lowercase ID.")
+            if mutation["id"] in seen_mutations:
+                raise ValueError(f"{case['id']}: duplicate mutation ID {mutation['id']}.")
+            seen_mutations.add(mutation["id"])
+            if not isinstance(mutation.get("description"), str) or not mutation["description"].strip():
+                raise ValueError(f"{case['id']}/{mutation['id']}: missing mutation description.")
+            edits = mutation.get("edits")
+            if not isinstance(edits, list) or not edits:
+                raise ValueError(f"{case['id']}/{mutation['id']}: edits must be a nonempty list.")
+            for edit in edits:
+                if not isinstance(edit, dict) or set(edit) != {"path", "old", "new"} or not all(isinstance(value, str) for value in edit.values()):
+                    raise ValueError(f"{case['id']}/{mutation['id']}: edits require string path, old, and new values.")
+                safe_path(manifest.parent, edit["path"])
+                if edit["path"] not in permitted or not edit["old"] or edit["old"] == edit["new"]:
+                    raise ValueError(f"{case['id']}/{mutation['id']}: mutation must change a permitted project file.")
+        case["mutations"] = mutations
         cases.append(case)
     if not cases:
         raise ValueError("No behavioral fixtures found.")
@@ -142,8 +164,11 @@ def grade(case: dict, workspace: Path, before: dict, process_runner=run_process)
         check = Path(temporary) / "acceptance.py"
         shutil.copy2(case["directory"] / "acceptance.py", check)
         digest = hashlib.sha256(check.read_bytes()).digest()
-        result = process_runner([sys.executable, "-I", "-B", str(check), str(workspace)], Path(temporary), 30)
-        intact = check.is_file() and hashlib.sha256(check.read_bytes()).digest() == digest
+        protected = Path(temporary) / "initial"
+        copy_tree(case["directory"] / "initial", protected)
+        protected_before = snapshot(protected)
+        result = process_runner([sys.executable, "-I", "-B", str(check), str(workspace), str(protected)], Path(temporary), 30)
+        intact = check.is_file() and hashlib.sha256(check.read_bytes()).digest() == digest and snapshot(protected) == protected_before
     # Check after grading too: imported candidate code must not mutate files.
     _, after_violations = diff_scope(before, snapshot(workspace), case["permitted_changes"])
     violations = sorted(set(violations + after_violations))
@@ -294,6 +319,18 @@ def capture_sources(root: Path, baseline_ref: str, destination: Path) -> tuple[d
     return {"baseline": baseline, "candidate": candidate}, {"baseline_revision": revision, "candidate_head": checked(["git", "rev-parse", "HEAD"], root), "candidate_snapshot_sha256": candidate_hash, "evaluation_corpus_installed": False}
 
 
+def apply_mutation(case: dict, workspace: Path, mutation: dict) -> None:
+    """Apply a reviewed negative recipe to a fresh reference solution."""
+    for edit in mutation["edits"]:
+        if edit["path"] not in case["permitted_changes"]:
+            raise ValueError(f"{case['id']}/{mutation['id']}: mutation cannot edit protected files.")
+        target = safe_path(workspace, edit["path"])
+        original = target.read_text(encoding="utf-8")
+        if not edit["old"] or edit["old"] == edit["new"] or original.count(edit["old"]) != 1:
+            raise ValueError(f"{case['id']}/{mutation['id']}: expected exactly one changed match in {edit['path']}.")
+        target.write_text(original.replace(edit["old"], edit["new"], 1), encoding="utf-8")
+
+
 def offline(cases: list[dict]) -> list[dict]:
     results = []
     for case in cases:
@@ -304,7 +341,20 @@ def offline(cases: list[dict]) -> list[dict]:
             initial = grade(case, workspace, before)
             copy_tree(case["directory"] / "reference", workspace)
             reference = grade(case, workspace, before)
-            results.append({"case": case["id"], "initial_rejected": not initial["correct"], "reference_passed": reference["correct"], "scope_violations": reference["scope_violations"], "reference_failure": reference["acceptance_failure"], "reference_diagnostics": reference["acceptance_diagnostics"]})
+        mutations = []
+        for mutation in case["mutations"]:
+            with tempfile.TemporaryDirectory(prefix="behavior-mutation-") as temporary:
+                workspace = Path(temporary)
+                copy_tree(case["directory"] / "initial", workspace)
+                before = snapshot(workspace)
+                copy_tree(case["directory"] / "reference", workspace)
+                apply_mutation(case, workspace, mutation)
+                result = grade(case, workspace, before)
+                # A timeout, integrity change or scope violation must not count
+                # as evidence that the acceptance checks discriminate behavior.
+                rejected = result["acceptance_failure"] == "checks_failed" and not result["scope_violations"]
+                mutations.append({"id": mutation["id"], "rejected": rejected, "acceptance_failure": result["acceptance_failure"], "acceptance_diagnostics": result["acceptance_diagnostics"], "scope_violations": result["scope_violations"]})
+        results.append({"case": case["id"], "initial_rejected": not initial["correct"], "reference_passed": reference["correct"], "scope_violations": reference["scope_violations"], "reference_failure": reference["acceptance_failure"], "reference_diagnostics": reference["acceptance_diagnostics"], "mutations": mutations})
     return results
 
 
@@ -352,10 +402,11 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("unknown case IDs: " + ", ".join(sorted(unknown)))
         cases = [case for case in cases if not args.cases or case["id"] in args.cases]
         references = offline(cases)
-        if not all(row["initial_rejected"] and row["reference_passed"] for row in references):
+        if not all(row["initial_rejected"] and row["reference_passed"] and row["mutations"] and all(mutation["rejected"] for mutation in row["mutations"]) for row in references):
             print(json.dumps(references, indent=2))
             return 1
-        print(f"Behavior fixtures valid: {len(cases)} cases; initial solutions rejected; reference solutions pass.")
+        mutation_count = sum(len(row["mutations"]) for row in references)
+        print(f"Behavior fixtures valid: {len(cases)} cases; initial solutions rejected; reference solutions pass; {mutation_count} incorrect mutations rejected.")
         if not args.live:
             return 0
         codex = shutil.which("codex")

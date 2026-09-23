@@ -14,6 +14,7 @@ Use this memory when deciding whether to add dependencies or expand the agent ki
 ## Content
 
 - The template favors lightweight Markdown, JSON indexes, and deterministic Python scripts over embeddings, graph databases, or model-hosting requirements.
+- Effective task delivery and low maintenance cost drive scope. The reference suite permits at most 49 collected cases; experimental corpora run only by explicit request.
 - Memory promotion is manual: scripts can generate candidates, but promoted memory must be reviewed and intentionally indexed.
 - Current source code, tests, and docs override memory when they conflict.
 - Repository skills inherit the agent-kit version; the template does not maintain a separate skill lockfile.

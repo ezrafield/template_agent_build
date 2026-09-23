@@ -31,9 +31,13 @@ python scripts/memory_lookup.py "debugging" --limit 5
 python scripts/memory_lookup.py ".agent/memory/procedural/"
 ```
 
-No query lists concise metadata in index order. Exact IDs take precedence;
-path queries match normalized paths, including legacy Windows separators. Other
-queries rank matching words in IDs, scopes, summaries, keywords, and paths.
+No query lists concise metadata in index order. Exact IDs take precedence.
+Standalone path queries match normalized paths, including legacy Windows
+separators. Queries starting with `.agent/memory/` or `memory/` also use path
+matching when card or directory names contain spaces. Other queries, including
+task prose such as `fix src/api/routes.py error handling`, rank matching words in
+IDs, scopes, summaries, keywords, and paths instead of switching to path-only
+matching because a source path appears. The same applies to Windows source paths.
 Matching is deterministic lexical retrieval, not semantic inference. No match
 is reported explicitly; narrow the query when results are omitted by limits.
 

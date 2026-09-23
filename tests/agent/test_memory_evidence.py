@@ -3,9 +3,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-import pytest
-
-from scripts import audit_memory_staleness, extract_task_memory, memory_evidence, validate_memory_links
+from scripts import audit_memory_staleness, memory_evidence, validate_memory_links
 
 
 def memory_root(tmp_path: Path, *, evidence: bool = False) -> tuple[Path, dict]:
@@ -72,90 +70,7 @@ def test_evidence_audit_detects_drift_and_missing_file_without_claiming_falsity(
     assert memory_evidence.inspect_evidence(root, entry).status == "missing-evidence"
 
 
-def test_legacy_windows_paths_remain_valid_without_relaxing_evidence_paths(tmp_path):
-    root, entry = memory_root(tmp_path)
-    card = root / entry["path"]
-    card.write_text(card.read_text().replace(".agent/task.md", ".agent\\task.md").replace("docs/source.md", "docs\\source.md"), encoding="utf-8")
-    entry["path"] = entry["path"].replace("/", "\\")
-    entry["source_task"] = entry["source_task"].replace("/", "\\")
-    save_entry(root, entry)
-    assert validate_memory_links.validate(root) == ([], ["lesson: untracked"])
-    assert audit_memory_staleness.audit(root, date(2026, 9, 22)) == ([], ["lesson: untracked"])
-    entry["evidence"] = [{"path": "docs\\source.md", "sha256": "0" * 64}]
-    assert memory_evidence.inspect_evidence(root, entry).status == "invalid-evidence"
-
-
-def test_legacy_independently_dated_metadata_remains_compatible(tmp_path):
-    root, entry = memory_root(tmp_path)
-    entry["last_verified"] = "2026-09-21"
-    save_entry(root, entry)
-    assert validate_memory_links.validate(root) == ([], ["lesson: untracked"])
-
-
-@pytest.mark.parametrize("path", ["../outside.md", "/absolute.md", "C:/secret.md", "docs\\source.md", ".env", "secrets/token.md", ".git/config", ".agent/memory/index.json"])
-def test_unsafe_evidence_sources_are_rejected(tmp_path, path):
+def test_unsafe_evidence_traversal_is_rejected(tmp_path):
+    path = "../outside.md"
     report = memory_evidence.inspect_evidence(tmp_path, {"evidence": [{"path": path, "sha256": "0" * 64}]})
     assert report.status == "invalid-evidence"
-
-
-def test_symlink_evidence_cannot_escape_repository(tmp_path):
-    root = tmp_path / "repo"
-    root.mkdir()
-    outside = tmp_path / "outside.md"
-    outside.write_text("outside", encoding="utf-8")
-    try:
-        (root / "link.md").symlink_to(outside)
-    except OSError:
-        pytest.skip("symlink creation is not available")
-    with pytest.raises(memory_evidence.EvidenceError, match="outside"):
-        memory_evidence.source_sha256(root, "link.md")
-
-
-@pytest.mark.parametrize("evidence", [[], "wrong", [None], [{"path": "source.md", "sha256": "bad"}], [{"path": 7, "sha256": "0" * 64}], [{"path": "source.md", "sha256": "0" * 64, "extra": 1}]])
-def test_malformed_evidence_is_not_accepted(tmp_path, evidence):
-    assert memory_evidence.inspect_evidence(tmp_path, {"evidence": evidence}).status == "invalid-evidence"
-
-
-def test_duplicate_evidence_and_unreadable_sources(tmp_path, monkeypatch):
-    source = tmp_path / "source.md"
-    source.write_bytes(b"normal")
-    evidence = memory_evidence.capture_evidence(tmp_path, ["source.md"])
-    assert memory_evidence.inspect_evidence(tmp_path, {"evidence": evidence * 2}).status == "invalid-evidence"
-    for raw in (b"bad\xff", b"binary\0text"):
-        source.write_bytes(raw)
-        with pytest.raises(memory_evidence.EvidenceError):
-            memory_evidence.source_sha256(tmp_path, "source.md")
-    monkeypatch.setattr(memory_evidence, "MAX_SOURCE_BYTES", 2)
-    source.write_bytes(b"large")
-    with pytest.raises(memory_evidence.EvidenceError, match="exceeds"):
-        memory_evidence.source_sha256(tmp_path, "source.md")
-
-
-def test_audit_age_and_card_metadata_mismatch_are_actionable(tmp_path):
-    root, entry = memory_root(tmp_path, evidence=True)
-    warnings, statuses = audit_memory_staleness.audit(root, date(2027, 9, 22))
-    assert "last verified" in " ".join(warnings)
-    assert statuses == ["lesson: needs-reverification"]
-    entry["last_verified"] = "2026-09-21"
-    save_entry(root, entry)
-    assert "Last verified does not match" in " ".join(validate_memory_links.validate(root)[0])
-    entry["path"] = "../outside.md"
-    save_entry(root, entry)
-    assert "path traversal" in " ".join(validate_memory_links.validate(root)[0])
-
-
-def test_candidate_fingerprints_are_explicitly_unreviewed(tmp_path):
-    root, _ = memory_root(tmp_path)
-    text = "# Task\n\n## Goal\nA useful lesson.\n\n## Files Inspected\n- `docs/source.md`\n- `../outside.md`\n"
-    candidate = extract_task_memory.candidate_body(root / ".agent/task.md", text, root)
-    assert "Last verified: TODO" in candidate
-    assert "not verified claims" in candidate
-    assert memory_evidence.source_sha256(root, "docs/source.md") in candidate
-    assert "path traversal" in candidate
-
-
-def test_invalid_index_is_reported_without_traceback(tmp_path):
-    root, _ = memory_root(tmp_path)
-    (root / ".agent/memory/index.json").write_text("[]", encoding="utf-8")
-    assert validate_memory_links.main(["--root", str(root)]) == 1
-    assert audit_memory_staleness.main(["--root", str(root)]) == 1

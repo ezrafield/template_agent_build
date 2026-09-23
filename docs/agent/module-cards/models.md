@@ -5,7 +5,6 @@ Owns domain data structures and model-level behavior.
 
 ## Key Files
 - `src/models/example.py`: sample domain model
-- `tests/unit/test_models.py`: model coverage
 
 ## Public Interfaces
 - Model classes and constructors exported from `src/models`
@@ -16,7 +15,7 @@ Owns domain data structures and model-level behavior.
 - Update tests when model invariants change.
 
 ## Common Tasks
-- Add model: define the model, export it from the package when needed, and add unit tests.
+- Add model: define and export it when needed; test meaningful invariants.
 - Change validation: update model tests and related API/service callers.
 
 ## Known Pitfalls

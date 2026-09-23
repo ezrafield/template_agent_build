@@ -6,13 +6,16 @@ cache is current. Read compact output first and open the full audit only when
 selection or provenance needs inspection. A new skill does not require rereading
 unchanged context. Query memory with `python scripts/memory_lookup.py "<task>"`.
 Link shared plan and verification records in task checkpoints rather than copying them.
+Optimize for completed acceptance criteria and low total effort. Use `test-scope`
+when changing coverage; keep docs to the smallest useful surface. Research
+evaluations are opt-in and are not prerequisites for everyday implementation.
 
 ## Add A Feature
 1. State observable acceptance criteria, then reuse or build a current task-context bundle for the feature.
 2. Read the relevant module card and verify selected excerpts.
 3. Inspect one similar implementation.
 4. Add the smallest complete implementation.
-5. Add or update focused tests.
+5. Reuse coverage; add a focused test only for an uncovered meaningful behavior.
 6. Run targeted checks.
 7. Update docs when behavior changes.
 8. For multi-module behavior or public-contract changes, obtain independent review
@@ -23,7 +26,7 @@ Link shared plan and verification records in task checkpoints rather than copyin
 2. Reuse or build a current `bug-fix` task-context bundle.
 3. Read the module card for the affected area.
 4. Patch the narrowest responsible code.
-5. Add a regression test.
+5. Retain a regression test when existing coverage misses a consequential failure.
 6. Run targeted tests.
 
 ## Refactor

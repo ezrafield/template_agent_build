@@ -102,9 +102,13 @@ def _score(entry: dict, query: str) -> int:
     if not query:
         return 1
     path = legacy_relative(entry["path"]).casefold()
-    if "/" in query:
-        return 2000 if query in path else 0
     if query == entry["id"].casefold():
+        return 2000
+    # A path embedded in task prose must not discard the other search terms.
+    # Keep canonical memory paths precise, including card names with spaces.
+    if "/" in query and (" " not in query or query.startswith((".agent/memory/", "memory/"))):
+        return 2000 if query in path else 0
+    if query == path or path.startswith(query.rstrip("/") + "/"):
         return 2000
     fields = [entry["id"], entry["scope"], entry["summary"], path, *entry["keywords"]]
     normalized = [" ".join(value.casefold().split()) for value in fields]

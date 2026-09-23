@@ -25,7 +25,10 @@
     {
       "id": "bug-fix",
       "index_heading": "For Bug Fixes",
-      "triggers": ["bug", "fix", "failure", "failing", "broken", "regression", "runtime error"],
+      "triggers": ["bug", "fix", "failure", "failing", "broken", "regression", "runtime error", "repair", "debug", "crash", "crashes"],
+      "intent_rules": [
+        [["fix", "repair", "debug", "reproduce"], ["bug", "failure", "failing", "broken", "regression", "crash", "crashes", "incorrect", "unexpected", "behavior"]]
+      ],
       "required": [
         {"path": "docs/agent/CONTEXT_ROUTER.md", "category": "agent-policy", "sections": ["Routing Policy", "Standard Route"]},
         {"path": "docs/agent/CODEMAP.md", "category": "code-map"}
@@ -51,7 +54,7 @@
     {
       "id": "database-change",
       "index_heading": "For Database Changes",
-      "triggers": ["database", "migration", "schema", "model", "sql", "persistence"],
+      "triggers": ["database", "migration", "schema", "data model", "database model", "orm", "sql", "persistence"],
       "required": [
         {"path": "docs/agent/module-cards/database.md", "category": "module-card"}
       ],
@@ -76,6 +79,7 @@
       "id": "refactor",
       "index_heading": "For Refactors",
       "triggers": ["refactor", "rename", "restructure", "simplify", "extract", "move module"],
+      "intent_rules": [[["refactor", "rename", "restructure", "move module"]]],
       "required": [
         {"path": "docs/agent/ARCHITECTURE.md", "category": "architecture"},
         {"path": "docs/agent/PITFALLS.md", "category": "agent-policy"}
@@ -103,7 +107,7 @@
     {
       "id": "agent-system",
       "index_heading": "For Agent, Skill, Tool, Or MCP Changes",
-      "triggers": ["agent", "skill", "codex", "claude", "mcp", "hook", "guardrail", "prompt", "agent kit"],
+      "triggers": ["agent", "skill", "codex", "claude", "mcp", "hook", "guardrail", "prompt", "agent kit", "language model", "llm"],
       "required": [
         {"path": "docs/agent/AGENTS_AND_SKILLS.md", "category": "agent-policy", "sections": ["Core Skills", "Progressive Disclosure"]},
         {"path": "docs/agent/CODEX_CUSTOMIZATION.md", "category": "agent-policy"},
@@ -120,6 +124,7 @@
       "id": "memory-maintenance",
       "index_heading": "For Long-Term Memory Changes",
       "triggers": ["memory", "promote", "semantic", "procedural", "stale memory", "retire memory"],
+      "intent_rules": [[["audit", "promote", "retire", "correct"], ["memory", "memories"]]],
       "required": [
         {"path": "docs/agent/MEMORY_POLICY.md", "category": "agent-policy"},
         {"path": "docs/agent/MEMORY_RETRIEVAL.md", "category": "agent-policy"},
@@ -150,6 +155,9 @@
       "id": "source-understanding",
       "index_heading": "For Source Understanding Or Code Search",
       "triggers": ["understand code", "code search", "find implementation", "where is", "source understanding", "dependency impact", "onboarding"],
+      "intent_rules": [
+        [["explain", "understand", "inspect"], ["task context", "context bundle", "context routing"]]
+      ],
       "required": [
         {"path": "docs/agent/CONTEXT_ROUTER.md", "category": "agent-policy"},
         {"path": "docs/agent/CODE_SEARCH.md", "category": "agent-policy"},
@@ -165,6 +173,12 @@
       "id": "code-review",
       "index_heading": "For Code Reviews",
       "triggers": ["code review", "review diff", "review pull request", "merge readiness", "regression risk", "security review"],
+      "intent_rules": [
+        [["code review", "review diff", "review pull request", "merge readiness", "security review"]],
+        [["review", "inspect", "assess"], ["diff", "pull request", "patch", "merge readiness"]],
+        [["review this", "review the", "inspect this", "inspect the", "assess this", "assess the"], ["refactor", "refactoring", "regression risk", "regression risks"]],
+        [["report findings"], ["without editing", "do not edit"]]
+      ],
       "required": [
         {"path": ".agents/skills/code-review/SKILL.md", "category": "skill"},
         {"path": "docs/agent/CODEMAP.md", "category": "code-map"},
@@ -179,6 +193,9 @@
       "id": "architecture-decision",
       "index_heading": "For Architecture Decisions",
       "triggers": ["architecture decision", "record adr", "tradeoff", "choose architecture", "service boundary", "dependency choice"],
+      "intent_rules": [
+        [["compare", "choose", "recommend", "evaluate", "decide"], ["architecture", "design", "designs", "storage", "service boundary", "tradeoffs", "tradeoff", "language model"]]
+      ],
       "required": [
         {"path": ".agents/skills/architecture-decision/SKILL.md", "category": "skill"},
         {"path": "docs/agent/ARCHITECTURE.md", "category": "architecture"}

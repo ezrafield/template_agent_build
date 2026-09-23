@@ -1,0 +1,24 @@
+[
+  {
+    "id": "drop-partial-chunk",
+    "description": "Discard the final chunk when it is shorter than size.",
+    "edits": [
+      {
+        "path": "src/chunks.py",
+        "old": "    if chunk:\n        yield chunk",
+        "new": "    if len(chunk) == size:\n        yield chunk"
+      }
+    ]
+  },
+  {
+    "id": "accept-boolean-size",
+    "description": "Treat True as integer chunk size one.",
+    "edits": [
+      {
+        "path": "src/chunks.py",
+        "old": "isinstance(size, bool) or ",
+        "new": ""
+      }
+    ]
+  }
+]

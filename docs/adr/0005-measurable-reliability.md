@@ -65,6 +65,15 @@ improved task success or billed savings.
 
 ## Evidence
 
+Scope revision, 2026-09-23: prioritize effective task delivery and low context,
+execution, and maintenance cost. The reference template caps the core pytest
+suite at 49 collected cases with `test-scope` guidance. Research corpora and
+runtime experiments remain explicitly manual; routine CI runs the core suite,
+compilation, and asset checks. This replaces exhaustive harness coverage as a
+release objective. Reduced experimental regression coverage is an accepted
+tradeoff, not evidence of improved task success. See the performance/minimal-tests
+plan under `.agent/plans/` for implementation evidence.
+
 - [Jev primitives](https://docs.typesafe.ai/introduction)
 - [Skill-induced failures, August 2026](https://arxiv.org/abs/2608.11888)
 - [Memory evaluation, July 2026](https://www.letta.com/blog/evaluating-memory-in-production-agents/)

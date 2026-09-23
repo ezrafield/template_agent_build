@@ -1,5 +1,5 @@
 QUERY ?=
-.DEFAULT_GOAL := install
+.DEFAULT_GOAL := help
 CONTENT ?= code
 PATTERN ?=
 LANG ?= python
@@ -7,7 +7,11 @@ REPOMIX_ARGS ?= .
 ROUTE ?=
 TASK_CONTEXT_ROUTE_ARG = $(if $(ROUTE),--route "$(ROUTE)",)
 
-.PHONY: behavior-eval advice-eval
+.PHONY: help behavior-eval advice-eval
+
+help:
+	@echo "Core: make test, make lint, make task-context TASK=..."
+	@echo "Optional tools: make agent-tools-install; experiments: see docs/agent/RELIABILITY_EVALS.md"
 
 behavior-eval:
 	python eval/behavior/run_behavior_eval.py
@@ -32,7 +36,8 @@ agent-kit-check:
 dev:
 	@echo "Start the development server here."
 
-test: test-unit test-integration
+test:
+	python -m pytest -q
 
 test-unit:
 	python -m pytest tests/unit tests/agent -q

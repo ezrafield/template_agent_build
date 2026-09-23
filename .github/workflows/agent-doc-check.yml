@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   agent-assets:
@@ -13,12 +14,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - run: python scripts/validate_agent_assets.py
+      # test.yml owns the bounded core suite; experiments are manual.
+
+  optional-experiments:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install required search tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep
       - run: npm install --global @openai/codex@0.146.0
-      - run: python scripts/validate_agent_assets.py
-      - run: python -m pytest tests/agent -q
       - run: python eval/context/run_task_context_eval.py
       - run: python eval/behavior/run_behavior_eval.py
       - run: python eval/advice/run_advice_eval.py

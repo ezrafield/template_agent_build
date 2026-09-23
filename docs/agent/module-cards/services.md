@@ -5,7 +5,7 @@ Owns business workflows and application logic.
 
 ## Key Files
 - `src/services/example_service.py`: sample service
-- `tests/unit/test_services.py`: service tests
+- `tests/integration/test_api.py`: health behavior through the API boundary
 
 ## Public Interfaces
 - `ExampleService`
@@ -16,7 +16,7 @@ Owns business workflows and application logic.
 - Keep persistence and transport concerns behind boundaries.
 
 ## Common Tasks
-- Add workflow: add a service method and unit tests.
+- Add workflow: add a service method; test meaningful behavior not already covered.
 - Change business rule: update tests and related product requirements.
 
 ## Known Pitfalls

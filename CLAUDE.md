@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-Use this project as an agent-native codebase.
+Prioritize effective task completion with low context, execution, and maintenance
+cost. Keep tests and documentation proportional; research evaluations are optional.
 
 ## Start Here
 For every non-trivial task:
@@ -27,6 +28,7 @@ For every non-trivial task:
 - Use Serena only when symbol references, declarations, implementations, diagnostics, or safe refactors require language-server semantics.
 - Use compressed command output for noisy commands when RTK is available.
 - Prefer targeted reads over broad scans.
+- When adding or pruning tests, use `.agents/skills/test-scope/SKILL.md`; respect the project's case budget and reuse existing coverage. Add documentation only for a concrete reader need.
 - Summarize findings before expanding scope.
 
 ## Long-Term Memory

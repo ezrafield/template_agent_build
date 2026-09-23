@@ -2,7 +2,7 @@ import subprocess
 import sys
 
 
-DEFAULT_COMMAND = ["python", "-m", "pytest", "tests/unit", "-q"]
+DEFAULT_COMMAND = [sys.executable, "-m", "pytest", "tests/integration/test_api.py", "-q"]
 
 
 def main() -> None:

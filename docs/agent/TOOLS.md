@@ -6,7 +6,7 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 
 | Script | Purpose |
 | --- | --- |
-| `scripts/task_context.py` | Build or explain an inspectable Markdown context bundle for one task. |
+| `scripts/task_context.py` | Build a bounded compact reading view and full Markdown audit; use `--view full` or `explain` for detailed inspection. |
 | `scripts/task_context_engine.py` | Validate routes and perform deterministic selection, safe reads, budgeting, redaction, and rendering. |
 | `scripts/decision_advice.py` | Typed, optional Jev shadow judgments; never controls task execution. |
 | `eval/behavior/run_behavior_eval.py` | Validate task fixtures offline or explicitly compare live baseline/candidate outcomes. |
@@ -20,17 +20,18 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `scripts/check_codex_runtime.py` | Verify Codex hook availability and evaluate command rules with `execpolicy`. |
 | `scripts/summarize_changed_files.py` | Summarize changed files for handoff and review. |
 | `scripts/update_module_cards.py` | Create missing module cards from source folders. |
-| `scripts/run_targeted_tests.py` | Run a focused test command or pick a small default. |
+| `scripts/run_targeted_tests.py` | Run the reference API smoke test by default. In adopted projects, pass the project's focused command as arguments. |
 | `scripts/validate_agent_docs.py` | Compatibility wrapper for unified agent-asset validation. |
 | `scripts/detect_large_context_docs.py` | Warn when auto-loaded docs become too large. |
 | `scripts/detect_large_agent_files.py` | Warn when agent entrypoints, skills, or subagents become too large. |
 | `scripts/check_context_staleness.py` | Warn when generated agent context may be older than source files. |
 | `scripts/audit_module_cards.py` | Check module-card coverage, headings, and unresolved TODOs. |
 | `scripts/audit_task_logs.py` | Check task logs for required audit headings. |
-| `scripts/extract_task_memory.py` | Create a manually reviewed memory candidate from a task log. |
+| `scripts/extract_task_memory.py` | Generate an unreviewed memory candidate from a task log for later manual review. |
 | `scripts/memory_lookup.py` | Query compact memory summaries, paths, and current evidence status without fingerprint dumps. |
+| `scripts/memory_evidence.py` | Capture normalized source fingerprints for manual inclusion after reviewing a memory claim. |
 | `scripts/validate_memory_links.py` | Validate promoted memory cards, metadata, index entries, and linked files. |
-| `scripts/audit_memory_staleness.py` | Warn when promoted memory is old or references missing files. |
+| `scripts/audit_memory_staleness.py` | Check memory age, missing files, and source-fingerprint drift; changed evidence requires review. |
 | `scripts/check_architecture_boundaries.py` | Catch simple layer import violations. |
 | `scripts/collect_task_trace.py` | Create a task trace from current changed files. |
 | `scripts/search_understand_graph.py` | Search the Understand Anything graph without loading it all into context. |
@@ -39,7 +40,7 @@ Use deterministic scripts for repeatable, cheap, auditable work.
 | `scripts/run_agent_tool.py` | Run project-local tools without requiring global PATH setup. |
 | `eval/retrieval/run_retrieval_eval.py` | Check whether Semble searches return expected context paths. |
 | `eval/agent/run_hook_eval.py` | Exercise deterministic hook inputs, outputs, and non-leakage behavior. |
-| `eval/skills/run_skill_routing_eval.py` | Validate routing fixtures or run authenticated non-gating Codex routing measurements. |
+| `eval/skills/run_skill_routing_eval.py` | Validate routing fixtures offline by default; authenticated Codex measurements require `--live --model MODEL`. |
 | `eval/context/run_task_context_eval.py` | Run deterministic no-Semble golden fixtures for every task-context route. |
 
 ## Command Output

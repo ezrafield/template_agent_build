@@ -1,299 +1,137 @@
 # Agent-Native Project Template
 
-This repository is a practical template for projects that collaborate well with
-coding agents such as Codex, Claude Code, and similar tools.
+A lightweight kit for completing coding tasks effectively with less context,
+execution, and maintenance overhead. Use a small instruction entrypoint,
+task-specific context, reusable skills, and reviewed memory with Codex or another
+coding assistant. Keep the workflow proportional to the task.
 
-The core idea is progressive context loading: keep auto-loaded instructions
-short, route agents through a small index, and compile richer task context only
-when the work needs it. Version 0.5.0 adds behavioral evaluations, memory evidence,
-bounded context expansion, independent review, and optional Jev shadow advice.
-It retains ten discoverable skills, deterministic context and validation,
-upgrade-safe installer ownership, and opt-in local hooks and command rules.
+**Agent-kit version: 0.5.0.** The sample application has its own version, 0.1.0.
+The core uses Python's standard library and Markdown/JSON files. It needs no API
+key, vector database, model server, or always-running orchestrator.
 
-The memory layer is inspired by PlugMem's semantic, procedural, and episodic
-taxonomy, but stays dependency-free: Markdown cards, a JSON index, and small
-deterministic Python scripts. It does not require embeddings, a graph database,
-an API key, or a model server.
+## Start With the Core
 
-Reliability checks are offline by default: `make behavior-eval` validates six
-task fixtures and their reference solutions; `make advice-eval` validates Jev
-experiment labels. Live comparisons require explicit invocation. Jev is optional
-and records advice only. See [reliability evaluations](docs/agent/RELIABILITY_EVALS.md)
-for commands, limits, and interpreting results. Live effectiveness is **not yet measured**.
-
-## How Agents Use It
-
-For non-trivial work, agents should:
-
-1. Read `AGENTS.md` or `CLAUDE.md`.
-2. Build or explain a task bundle with `scripts/task_context.py`; the selected
-   route remains authoritative and optional Semble matches are advisory.
-3. Review the bundle's warnings, gaps, source hashes, and selected excerpts.
-4. Verify useful memory and generated context against current files.
-5. Expand with `rg`, Serena, or Understand Anything only as the task requires.
-6. Make the smallest safe change and run targeted checks before broad checks.
-7. Capture task state and reusable lessons when useful.
-
-Memory is a decision aid, not source of truth. Current repository files win when
-they conflict with memory.
-
-## Structure
-
-- `AGENTS.md` and `CLAUDE.md`: short agent entrypoints.
-- `docs/agent/`: on-demand routing docs, module cards, policies, and tool notes.
-- `.agent/memory/`: semantic and procedural long-term memory.
-- `.agent/tasks/`: episodic task logs and audit trails.
-- `.agent/plans/`: lightweight plan lifecycle folders and template.
-- `.agent/context-cache/task-context/`: ignored, reproducible Markdown bundles.
-- `.agents/skills/`: ten reusable Codex skills with frontmatter and UI metadata.
-- `.claude/agents/`: Claude Code subagent templates.
-- `.claude/hooks/`: optional lightweight hook examples.
-- `.codex/templates/`: reviewed templates for machine-local opt-in hooks and rules.
-- `.mcp/`: MCP setup notes and candidate server documentation.
-- `tools/agent/`: pinned manifests for project-local optional agent tools.
-- `.understand-anything/`: Understand Anything setup notes.
-- `scripts/`: deterministic helpers for setup, audits, context generation, and memory.
-- `eval/`: retrieval and regression evaluation placeholders.
-- `src/` and `tests/`: sample project modules and tests.
-
-## Tool Roles
-
-| Tool | Solves | Best place in template |
-| --- | --- | --- |
-| Module cards | Human-maintained ownership, interfaces, tests, and pitfalls | Stable context anchor |
-| Task-context compiler | Deterministic, inspectable task-specific Markdown bundles | First context pass for non-trivial work |
-| Memory | Durable lessons from previous tasks | Decision aid before search |
-| Semble | Natural-language code and docs retrieval | Context discovery |
-| `rg` | Exact string, symbol, and path confirmation | Verification |
-| Serena | References, declarations, diagnostics, and safe refactors | Advanced coding setup |
-| ast-grep | Structural code search | Pattern matching |
-| Repomix | Repository export/bundling | External model review |
-| RTK | Compressed noisy terminal output | Command execution |
-| Understand Anything | Graph and dependency reasoning | Architecture understanding |
-
-## Getting Started
+From a checkout, use Python 3.11 or newer, Git, and `rg` on PATH:
 
 ```bash
-make install
-make agent-tools-check
-make validate-agent-assets
-make task-context TASK="implement a small API endpoint"
-make test-unit
-make lint
+python scripts/validate_agent_assets.py
+python scripts/task_context.py build "Fix a login validation bug" --no-search
+python scripts/memory_lookup.py "debugging"
 ```
 
-This is a template, so most project commands are placeholders until you wire
-them to your actual stack.
+Read the emitted `.read.md` bundle. These commands validate the kit, build local
+context, and look up memory. No model calls or optional
+tool installation are involved. Use the Python interpreter configured for your
+environment if `python` is unavailable.
 
-## Project-Local Agent Tools
-
-Optional agent tools are pinned under `tools/agent/` so a fresh checkout can
-recreate the same local tool stack without global installs:
+To run the template's tests, install `pytest>=8,<9` in your development environment
+and run `python -m pytest -q`. With `uv`, an isolated alternative is:
 
 ```bash
-make agent-tools-install
-make agent-tools-check
+uv run --no-project --with "pytest>=8,<9" python -m pytest -q
 ```
 
-If `make` is not available on Windows, use:
+`make` shows help and provides optional shortcuts. `make install` installs the **optional
+agent tool stack**, so use the commands above for the minimal path. The sample
+`dev` and `typecheck` targets are placeholders; `lint` compiles Python and validates
+agent assets. Connect real application commands when adopting the template.
+
+## Install Into an Existing Project
+
+Run these commands from the template checkout, substituting your destination:
 
 ```bash
-python scripts/bootstrap_agent_tools.py
-python scripts/bootstrap_agent_tools.py --check
+python scripts/agentkit_installer.py install --source . --target "/path/to/project"
+python scripts/agentkit_installer.py check --source . --target "/path/to/project"
 ```
 
-Prerequisites are deliberately small and machine-level: Python, `uv`, Node.js
-22+, and `npm`. The bootstrap handles the project-local pieces after that.
+Then run `python scripts/agent_setup.py` **from the destination project**. Review
+its detected commands, generated codemap, and module-card TODOs. The setup adapts
+agent documentation; it does not install your application's dependencies.
 
-What is committed:
-
-- Semble manifest and lock: `tools/agent/python/semble/`
-- Serena manifest and lock: `tools/agent/python/serena/`
-- Repomix and ast-grep npm manifest and lock: `tools/agent/package*.json`
-- RTK release manifest and checksums: `tools/agent/rtk-manifest.json`
-- Bootstrap and wrapper scripts under `scripts/`
-
-What is generated and ignored:
-
-- Python virtual environments under `tools/agent/python/*/.venv/`
-- Node dependencies under `tools/agent/node_modules/`
-- RTK binary under `tools/agent/bin/`
-- uv, npm, Hugging Face, Semble, and download caches
-
-Semble and Serena intentionally use separate `uv` environments. Serena
-`1.5.3` pins `pathspec==0.12.1`, while Semble search needs a newer `pathspec`
-API, so splitting the environments preserves both pinned tools and keeps
-`semble search` working. Python 3.13 is requested for these environments to
-avoid Python 3.14 compatibility warnings in Serena's dependencies.
-
-Run tools through the workspace wrapper when you do not want to rely on PATH:
+To update later, run from the template checkout:
 
 ```bash
-make code-search QUERY="source understanding" CONTENT=all
-make git-status
-python scripts/run_agent_tool.py semble search "source understanding" . --content all
-python scripts/run_agent_tool.py serena --help
-python scripts/run_agent_tool.py repomix --version
-python scripts/run_agent_tool.py ast-grep --version
+python scripts/agentkit_installer.py update --source . --target "/path/to/project"
 ```
 
-On a copied workspace, rerun `make agent-tools-install` or
-`python scripts/bootstrap_agent_tools.py` if the OS, CPU architecture, Python,
-Node, or absolute path changed.
+The installer backs up replaced kit files, merges root instructions, and copies
+starter memory only when missing. It prunes only obsolete recorded kit-owned
+paths. Application files, project Makefiles, and existing project memory retain
+their ownership. Shell wrappers `install.sh` and `update.sh` are also available.
 
-## Installing Into Another Project
+## Everyday Workflow
 
-From a checkout of this template:
+1. Start with `AGENTS.md` or `CLAUDE.md`, then use the [context index](docs/agent/INDEX.md).
+2. Reuse an inspected current bundle for the same task and route. Rebuild when
+   the task, options, requested ranges, or relevant sources change.
+3. Read compact warnings, gaps, source identities, and excerpts. Query memory with
+   `python scripts/memory_lookup.py "your task"`, then verify useful cards against source.
+4. State observable acceptance criteria, make the smallest complete change, and
+   run focused checks. Use `test-scope` when adding or pruning coverage; reuse
+   relevant tests and update only necessary docs. Multi-module behavior or public-contract changes require
+   independent review under the existing implementation/review skills.
+5. Keep required plans under `.agent/plans/`; link their goals and check results
+   from concise handoff checkpoints instead of duplicating the same narrative.
 
-```bash
-./install.sh /path/to/project
-```
+The router uses deterministic rules. Semble search is optional and advisory;
+Jev advice never controls routes, permissions, context expansion, or completion.
+Current source remains authoritative over memory and generated artifacts.
 
-The schema-v2 installer reads `agentkit-manifest.json`, backs up existing agent
-config under `.agentkit/backups/`, merges `AGENTS.md` and `CLAUDE.md`, copies
-harness files, copies starter `.agent/` files only when missing, and records
-kit-owned paths in `.agentkit-installed-files`.
+Context has a 10-document and 40,000-character reading limit. Full audits,
+explicit expansion, and route overrides are described in the
+[context guide](docs/agent/CONTEXT_ROUTER.md). Memory promotion stays manual;
+new or re-verified cards need reviewed source evidence. Follow the
+[promotion rules](docs/agent/MEMORY_PROMOTION_RULES.md).
 
-On update, obsolete recorded kit files are backed up and pruned. Merged
-entrypoints, copy-if-missing memory, and unrecorded project files are never
-pruned. Run `make agent-kit-check` to validate the manifest, installed files,
-and required commands.
+## Small Core, Optional Experiments
 
-Use `./update.sh /path/to/project` to refresh the harness later.
+The reference template enforces **fewer than 50 collected pytest cases**,
+including parameterized cases and skips. Keep one useful check for each important
+contract; replace redundant coverage before adding more. The reusable
+[`test-scope` skill](.agents/skills/test-scope/SKILL.md) follows each project's
+budget, rather than imposing this template's cap on every project.
 
-After install, run:
+Routine CI runs the core suite, compilation, and agent-asset validation. Detailed
+research corpora remain in `eval/` for explicit experiments; they do not run as
+part of pytest or routine CI. Use the manual `agent-doc-check` workflow or the
+[evaluation guide](docs/agent/RELIABILITY_EVALS.md) when investigating the kit itself.
 
-```bash
-python scripts/agent_setup.py
-make agent-tools-install
-make agent-kit-check
-```
+Assess performance using completed acceptance criteria, elapsed time, context,
+and commands. Smaller test or document counts alone do not establish better task
+outcomes. Live effectiveness remains **not yet measured**.
 
-If `make` is unavailable, run `python scripts/bootstrap_agent_tools.py`
-instead.
+## Optional Integrations
 
-The setup script detects the stack and common commands, refreshes
-`docs/agent/CODEMAP.md`, creates missing module cards, ensures task and memory
-scaffolding exists, runs validation, and smoke-tests the task-context compiler.
+Install optional tools only when their capabilities are useful. The [tool workspace guide](tools/agent/README.md)
+covers pinned Semble, Serena, Repomix, ast-grep, and RTK installations, their
+additional prerequisites, isolated environments, and ignored caches.
 
-## Task Context Compiler
+- Use `rg` for exact search and Semble for advisory natural-language retrieval.
+- Use Serena for language-server navigation; export repositories with Repomix when needed.
+- Use RTK to reduce noisy terminal output while preserving actionable errors.
+- Use Understand Anything through its installed runtime for knowledge graphs.
+  `make understand` prints setup guidance; it does not generate a graph itself.
 
-The compiler selects a deterministic route from
-`docs/agent/context-routes.json`, reads required routed sources first, and may
-append locally re-read Semble results when the optional tool is available. It
-writes a full Markdown audit and a compact `.read.md` companion under the ignored
-`.agent/context-cache/task-context/` directory. Default reading output is bounded
-including metadata; required context precedes optional excerpts. Source files
-remain authoritative; bundles are disposable and are never promoted automatically.
+Hooks and command rules are **opt-in**. Fresh installs do not activate them.
+See [Codex customization](docs/agent/CODEX_CUSTOMIZATION.md) for generation, trust,
+and validation. Check [component versions](docs/agent/COMPONENT_VERSIONS.md) before
+planning dependency upgrades; a newer release alone does not establish compatibility.
 
-```bash
-python scripts/task_context.py build "review the authentication change" --stdout
-python scripts/task_context.py build "review the authentication change" --view full
-python scripts/task_context.py explain "review the authentication change"
-make task-context TASK="review the authentication change"
-make task-context-explain TASK="review the authentication change"
-make task-context-eval
-```
+## Documentation Map
 
-Use `--route <id>` only when the deterministic classification is not the route
-you intend, and `--no-search` for a route-only build. Missing optional search,
-blocked reads, gaps, and truncation are recorded as warnings without making a
-successfully rendered bundle fail. If required context and mandatory diagnostics
-cannot fit the compact budget, an explicit error directs inspection of the full
-audit. Reuse inspected context across skills while the task, route, ranges, and
-relevant sources are unchanged. Query memory with
-`python scripts/memory_lookup.py "task"` to read summaries and evidence status
-without loading fingerprint lists.
+| Need | Start here |
+| --- | --- |
+| Agent entrypoints and task routing | [AGENTS.md](AGENTS.md), [context index](docs/agent/INDEX.md) |
+| Context selection, budgets, expansion | [Context router](docs/agent/CONTEXT_ROUTER.md) |
+| Commands and tools | [Generated commands](docs/agent/COMMANDS.md), [tool reference](docs/agent/TOOLS.md) |
+| Skills, review, and handoff | [Skills](docs/agent/AGENTS_AND_SKILLS.md), [workflows](docs/agent/WORKFLOWS.md) |
+| Memory and promotion | [Memory policy](docs/agent/MEMORY_POLICY.md), [promotion rules](docs/agent/MEMORY_PROMOTION_RULES.md) |
+| Code and architecture discovery | [Source understanding](docs/agent/SOURCE_UNDERSTANDING.md) |
+| Version and quality findings | [Versions](docs/agent/COMPONENT_VERSIONS.md), [completed work](.agent/plans/completed/) |
 
-## Codex Guardrails
-
-Fresh clones contain no active project hooks or command rules. To opt in on one
-machine:
-
-```bash
-make codex-guardrails-enable
-make codex-runtime-check
-```
-
-The first command generates ignored `.codex/hooks.json` and
-`.codex/rules/default.rules` files with absolute local handler paths and refuses
-to overwrite existing configuration. Restart Codex, open `/hooks`, review the
-definitions, and trust them explicitly.
-
-The hooks check startup dependencies, block strong secret patterns without
-logging prompt contents, and validate changed agent assets at Stop. The command
-rules prompt for sensitive package, push, reset, migration, and deployment
-operations and forbid exact catastrophic root deletions. They contain no
-out-of-sandbox `allow` rules.
-
-## Agent Memory Workflow
-
-Use `.agent/tasks/` for raw episodic notes. Promote only compact, reusable,
-non-sensitive lessons into `.agent/memory/`.
-
-| Memory type | Purpose | Location |
-| --- | --- | --- |
-| Semantic | Stable facts, conventions, and decisions | `.agent/memory/semantic/` |
-| Procedural | Reusable workflows and playbooks | `.agent/memory/procedural/` |
-| Episodic | Raw task context and audit history | `.agent/tasks/` |
-
-```bash
-make extract-task-memory TASK=.agent/tasks/<task>.md
-make audit-memory
-```
-
-The extraction script creates a candidate under `.agent/memory/candidates/`.
-Review it manually, remove unsafe or low-value details, move durable facts into
-`semantic/` or workflows into `procedural/`, update `.agent/memory/index.json`,
-then run the audit again.
-
-`make audit-memory` validates index metadata, card structure, source-task and
-related-file links, verification dates, and a 180-day staleness threshold.
-Candidates are drafts and are excluded from installation; only reviewed,
-indexed memory is intended for reuse.
-
-Never promote secrets, credentials, customer data, sensitive stack traces, or
-unverified one-off conclusions. Memory narrows the search; current code, tests,
-specifications, and agent docs remain authoritative.
-
-## Audits And Verification
-
-```bash
-make validate-agent-docs
-make validate-agent-assets
-make agent-kit-check
-make task-context-eval
-make codex-runtime-check
-make check-context-staleness
-make audit-module-cards
-make audit-task-logs
-make audit-memory
-make detect-large-agent-files
-make detect-large-context-docs
-```
-
-Use audits as warnings during setup and stricter gates before sharing the kit
-with a team.
-
-`make skill-routing-eval` validates its routing corpus offline. Live measurements
-require `python eval/skills/run_skill_routing_eval.py --live --model MODEL` and
-report precision, recall, forbidden activations, and collisions. These remain
-informational until repeated runs establish a stable baseline; use `--limit 3`
-for a smaller live sample.
-
-## Source Understanding
-
-Use Understand Anything to generate a knowledge graph for humans and agents:
-
-```bash
-make understand
-make understand-search QUERY="api route"
-```
-
-Generated graph files are ignored by default; setup notes and ignore rules are
-committed.
-
-## Credits
-
-See [`CREDITS.md`](CREDITS.md) for the open-source projects that influenced this
-template and the optional tools it is designed to work with.
+`src/` and `tests/` contain the sample application and test suites. `.agents/skills/`,
+`scripts/`, `eval/`, and `docs/agent/` contain the reusable kit. `.agent/plans/` and
+`.agent/tasks/` retain decisions and checkpoints; generated context, tool caches,
+and evaluation reports are ignored. See [credits](CREDITS.md) for upstream tools
+and design influences.

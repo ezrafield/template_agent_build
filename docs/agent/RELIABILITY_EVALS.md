@@ -1,8 +1,8 @@
-# Reliability Evaluations
+# Optional Reliability Experiments
 
-v0.5 measures task outcomes separately from asset validity and skill selection.
-Correctness and scope come first; time, commands, context size, and usage are
-secondary observations. Live effectiveness is **not yet measured** by offline tests.
+Use these tools when studying the kit, not as prerequisites for ordinary coding.
+Track task outcomes, elapsed time, commands, context size, and usage separately
+from asset validity and skill selection. Live effectiveness is **not yet measured**.
 
 ## Offline Checks
 
@@ -10,16 +10,27 @@ secondary observations. Live effectiveness is **not yet measured** by offline te
 make behavior-eval
 make advice-eval
 make skill-routing-eval
-python eval/run_eval.py
 ```
 
-Direct Python equivalents are `python eval/behavior/run_behavior_eval.py`,
+These Make shortcuts belong to the reference checkout. Installed kits can use
+`python eval/behavior/run_behavior_eval.py`,
 `python eval/advice/run_advice_eval.py`, and
-`python eval/skills/run_skill_routing_eval.py`. These require no model key or paid call.
-CI validates fixtures and tests fake runners/transports. The six behavioral cases
-cover a bug, edge-case feature, refactor, documentation, conflicting memory, and
-missing context. Checks belong to the evaluator; an agent's success claim does
-not determine the result. Reference solutions verify fixture feasibility.
+`python eval/skills/run_skill_routing_eval.py`. These make no model, network, or
+paid calls. The aggregate `python eval/run_eval.py` is reference-checkout-only.
+Routine CI runs the bounded core pytest suite and lightweight asset/compilation
+checks. The manual `agent-doc-check` workflow also validates these research
+corpora and the pinned Codex runtime without paid calls. Detailed experiment
+edge cases have intentionally reduced unit coverage.
+
+The six behavioral cases cover a bug, edge-case feature, refactor, documentation,
+conflicting memory, and missing context. Initial solutions must fail, references
+must pass, and 14 reviewed incorrect mutations must fail within the permitted
+diff. Graders use file snapshots and independently held checks; protected initial
+sources are integrity-checked. Documented inline or fenced CLI examples are
+parsed against the original parser without executing command text.
+See [fixture maintenance](../../eval/behavior/README.md) for the file contract.
+These controlled fixtures are not an adversarial sandbox or exhaustive proof of
+grader correctness, natural-language claim validity, or live effectiveness.
 
 ## Optional Live Skill Routing
 
@@ -46,17 +57,32 @@ skill selection alone does not demonstrate successful task completion.
 python eval/behavior/run_behavior_eval.py --live --model MODEL --baseline-ref REVISION
 ```
 
-The initial v0.4 baseline is `ddc2831131c949780b2abc3d966c3f357359286e`.
-Select a smaller smoke experiment with `--case ID`; use `--repeat N` for repeated
-measurements. Each trial has a default 300-second timeout and no automatic retry.
-The same fixtures, model, and runtime safeguards apply to baseline and candidate.
-Trials use disposable workspaces, never the user's checkout. Authentication or
-unsupported runtime configurations must not silently weaken execution controls.
+Live runs require an authenticated Codex CLI and explicit model and baseline
+revision. The initial v0.4 baseline is `ddc2831131c949780b2abc3d966c3f357359286e`.
+The evaluator archives that exact revision and hashes the current candidate
+harness, including uncommitted edits. Each arm uses its own installer in a fresh,
+disposable Git repository; neither receives the behavior corpus or reference
+answers. Fixtures, prompts, model, limits, and guardrail activation match across
+arms, with alternating execution order.
 
-Reports live in ignored `.agent/traces/evals/`. They retain failed-trial accounting,
-scope violations, elapsed time, command count, context size, and available token
-usage. Unknown metrics remain null, and measured tokens are not a billed cost.
-Raw prompts, credentials, and hidden reasoning do not belong in reports.
+Trials use `workspace-write`, approval policy `never`, disabled workspace network,
+enabled hooks, and installed command rules. Host hook trust is retained: confirm
+the installed definitions are approved before claiming guardrail coverage.
+Authentication or unsupported runtimes must not weaken these controls. Trial
+tasks prohibit network requests, package installation, commits, and guardrail
+edits. New plan/task notes and ignored caches are allowed; existing instructions
+and memories remain protected unless explicitly permitted by the fixture.
+
+Use `--case ID` to select cases, `--repeat N` to repeat them (default 1), and
+`--timeout SECONDS` to change the 300-second trial limit. There are no automatic
+retries; timeout terminates the subprocess tree.
+
+Reports in ignored `.agent/traces/evals/behavior-*.json` retain correctness,
+failures, scope violations, elapsed time, command count, context size, and
+available token usage. Unknown usage/cost stays `null`; measured tokens are not
+billed cost. Raw events, prompts, command text, credentials, and hidden reasoning
+are excluded. Quality outcomes are informational; infrastructure failures return
+nonzero and remain in the denominator.
 `context_characters` estimates the available generated reading context: prefer
 each compact `.read.md` companion and use its full `.md` audit only when no
 compact companion exists, including v0.4 baseline bundles. It never counts both
@@ -94,13 +120,6 @@ of correctness. Advice cannot change routes, expansions, permissions, or tests.
 
 ## Review and Handoff
 
-For multi-module behavior changes or public-contract changes, agree on observable
-acceptance criteria and give an independent reviewer the request, diff, and
-verification evidence. Use a separate agent/session where possible, and disclose
-same-context review. Allow an initial review and one re-review after fixes.
-Unresolved material findings block a completion claim. Simple documentation and
-low-impact edits retain normal verification.
-
-Use the task-log checkpoint to preserve completed criteria, open findings,
-verified revision and dirty state, checks, external effects, and next action.
-On resume, verify current state and rerun only checks affected by relevant edits.
+Follow [code-review](../../.agents/skills/code-review/SKILL.md) for independent
+review and [task-handoff](../../.agents/skills/task-handoff/SKILL.md) for checkpoint
+and resume requirements.

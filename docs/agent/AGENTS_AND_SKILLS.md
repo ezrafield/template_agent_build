@@ -12,6 +12,7 @@ concise workflow body, and Codex UI metadata under `agents/openai.yaml`.
 | `repo-navigator` | Locate relevant code, tests, docs, symbols, and optional graph context without editing. |
 | `safe-implementation` | Implement scoped behavior changes with tests and synchronized documentation. |
 | `test-debug-loop` | Reproduce, isolate, fix, and re-test a failure. |
+| `test-scope` | Minimize necessary coverage, remove redundant cases, and respect the project's test budget. |
 | `code-review` | Perform a findings-first, read-only change review. |
 | `architecture-decision` | Compare consequential options and record durable decisions. |
 | `agent-setup` | Bootstrap or audit the installed agent kit. |
@@ -38,7 +39,8 @@ workflow without storing secrets or hidden chain-of-thought.
 For changes spanning multiple modules' behavior or public contracts, use the
 existing implementation and review skills with observable acceptance criteria
 and an independent reviewer. See [RELIABILITY_EVALS.md](RELIABILITY_EVALS.md).
-No additional mandatory skill or always-running reviewer is installed.
+No always-running reviewer is installed. `test-scope` applies when designing or
+pruning coverage; an ordinary test run does not need another skill activation.
 
 Skill activation reuses already-inspected context for the same task and route.
 Refresh when relevant sources or requested ranges change. Read compact bundles

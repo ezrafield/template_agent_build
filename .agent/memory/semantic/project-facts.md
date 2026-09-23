@@ -13,11 +13,11 @@ Use this memory when orienting on the template's purpose and baseline workflow.
 
 ## Content
 
-- This repository is an agent-native project template for Codex, Claude Code, and similar coding agents.
+- This template prioritizes effective task completion with low context, execution, and maintenance cost; research evaluations are optional.
 - Agents start with `AGENTS.md` or `CLAUDE.md`, then reuse an inspected current bundle or compile task-specific Markdown for non-trivial work.
 - `.agent/tasks/` is episodic memory: task-local notes and audit trails.
 - `.agent/memory/` is long-term semantic and procedural memory that must be verified before use.
-- The Codex-first v0.5 catalog contains ten discoverable skills under `.agents/skills/`.
+- The Codex-first v0.5 catalog contains eleven discoverable skills under `.agents/skills/`, including `test-scope` for minimal necessary coverage.
 - `docs/agent/context-routes.json` is the validated route source; `INDEX.md` is its synchronized human explanation.
 - Task bundles are reproducible ignored cache files under `.agent/context-cache/task-context/`, not authoritative memory.
 - Active Codex hooks and command rules are machine-local opt-in files generated from `.codex/templates/`.

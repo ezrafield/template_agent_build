@@ -462,6 +462,18 @@ def validate_route_manifest(root: Path, manifest_path: Path | None = None) -> li
         elif not triggers:
             empty_trigger_routes.append(str(route_id))
 
+        rules = route.get("intent_rules", [])
+        if not isinstance(rules, list) or any(
+            not isinstance(rule, list) or not rule or any(
+                not isinstance(group, list) or not group or not all(
+                    isinstance(phrase, str) and phrase.strip() for phrase in group
+                ) for group in rule
+            ) for rule in rules
+        ):
+            errors.append(f"{label}.intent_rules must be a list of non-empty phrase-group rules")
+        if route_id == "general" and rules:
+            errors.append("The general fallback cannot define intent_rules")
+
         for collection_name in ("required", "optional"):
             specs = route.get(collection_name)
             if not isinstance(specs, list):
@@ -516,7 +528,9 @@ def _phrase_matches(phrase: str, text: str) -> bool:
     return re.search(prefix + body + suffix, text, flags=re.IGNORECASE) is not None
 
 
-def classify_route(task: str, manifest: dict, route_id: str | None = None) -> dict:
+def classify_route(
+    task: str, manifest: dict, route_id: str | None = None, *, warnings: list[str] | None = None,
+) -> dict:
     routes = manifest["routes"]
     if route_id:
         selected = next((route for route in routes if route["id"] == route_id), None)
@@ -526,18 +540,28 @@ def classify_route(task: str, manifest: dict, route_id: str | None = None) -> di
         return selected
 
     normalized = normalize_task(task)
-    best: dict | None = None
-    best_score = 0
-    for route in routes:
-        score = sum(
+    # A rule expresses a requested workflow using groups of alternative phrases.
+    # It is declarative and optional: generic manifests retain keyword routing.
+    intents = [route for route in routes if any(
+        all(any(_phrase_matches(phrase, normalized) for phrase in group) for group in rule)
+        for rule in route.get("intent_rules", [])
+    )]
+    candidates = intents or routes
+    scores = [sum(
             max(1, len(trigger.split()))
             for trigger in route["triggers"]
             if _phrase_matches(trigger, normalized)
-        )
-        if score > best_score:
-            best = route
-            best_score = score
-    return best or next(route for route in routes if route["id"] == "general")
+        ) for route in candidates]
+    best_score = max(scores, default=0)
+    tied = [route for route, score in zip(candidates, scores) if score == best_score]
+    selected = tied[0] if intents or best_score else next(route for route in routes if route["id"] == "general")
+    ambiguous = intents if len(intents) > 1 else tied if best_score and len(tied) > 1 else []
+    if warnings is not None and ambiguous:
+        choices = ", ".join(str(route["id"]) for route in ambiguous)
+        warnings.append(f"Ambiguous route: {choices}; selected `{selected['id']}` deterministically. Inspect the requested workflow or use --route ID.")
+    elif warnings is not None and not intents and not best_score:
+        warnings.append("No route triggers matched; using general context. Clarify the task or use --route ID if specialized context is needed.")
+    return selected
 
 
 def _task_tokens(task: str) -> list[str]:
@@ -575,30 +599,42 @@ def _optional_excerpt(
     """Return bounded local windows; explicit expansion remains the escape hatch."""
     lines = text.splitlines()
     tokens = _task_tokens(task)
-    hits = [index + 1 for index, line in enumerate(lines)
-            if any(_phrase_matches(token, line.casefold()) for token in tokens)
-            and any(start <= index + 1 <= end for start, end in available)]
-    windows = _merge_ranges(
-        (max(start, hit - 6), min(end, hit + 12))
-        for hit in hits for start, end in available if start <= hit <= end
-    ) if hits else available
+    definitions = {token: re.compile(rf"^\s*(?:async\s+)?(?:def|class|function)\s+{re.escape(token)}\b", re.I)
+                   for token in tokens}
+    named = {token for token in tokens if "_" in token
+             or re.search(rf"`{re.escape(token)}`|\b{re.escape(token)}\s*\(", task, re.I)}
+    named.update(token.casefold() for token in re.findall(r"\b\w*[a-z][A-Z]\w*\b", task))
+    hits: list[tuple[int, int]] = []
+    for number, line in enumerate(lines, 1):
+        if not any(start <= number <= end for start, end in available):
+            continue
+        matches = [token for token in tokens if _phrase_matches(token, line.casefold())]
+        if matches:
+            rank = 0 if any(definitions[token].search(line) for token in matches) else 1 if named.intersection(matches) else 2
+            hits.append((rank, number))
+    # Keep priority in the emitted excerpt too: later global budget clipping must
+    # not restore source order and discard the requested definition again.
+    windows = [(hit if rank < 2 else max(start, hit - 6), min(end, hit + 12))
+               for rank, hit in sorted(hits)
+               for start, end in available if start <= hit <= end] if hits else available
     selected: list[tuple[int, int]] = []
     characters = 0
     line_count = 0
     for start, end in windows:
-        if selected:
-            characters += 2
-        last = start - 1
-        for line in range(start, end + 1):
-            cost = len(lines[line - 1]) + 1
-            if line_count >= OPTIONAL_EXCERPT_LINES or characters + cost > OPTIONAL_EXCERPT_CHARS:
-                break
-            last = line
-            line_count += 1
-            characters += cost
-        if last >= start:
-            selected.append((start, last))
-        if last < end:
+        for first, last in _uncovered_ranges([(start, end)], selected):
+            for number in range(first, last + 1):
+                adjacent = bool(selected and selected[-1][1] + 1 == number)
+                separator = 0 if not selected or adjacent else 1
+                cost = len(lines[number - 1]) + 1 + separator
+                if line_count + 1 + separator > OPTIONAL_EXCERPT_LINES or characters + cost > OPTIONAL_EXCERPT_CHARS:
+                    break
+                line_count += 1 + separator
+                characters += cost
+                if adjacent:
+                    selected[-1] = (selected[-1][0], number)
+                else:
+                    selected.append((number, number))
+        if line_count >= OPTIONAL_EXCERPT_LINES or characters >= OPTIONAL_EXCERPT_CHARS:
             break
     excerpt = "\n\n".join("\n".join(lines[start - 1:end]).strip() for start, end in selected)
     if not selected and windows:
@@ -964,13 +1000,13 @@ def build_task_context(
         raise TaskContextError(f"Repository root does not exist: {root}")
 
     manifest, manifest_hash = load_route_manifest(root, manifest_path)
-    route = classify_route(task, manifest, route_id)
+    warnings: list[str] = []
+    route = classify_route(task, manifest, route_id, warnings=warnings)
     defaults = manifest["defaults"]
     max_docs = int(defaults["max_docs"])
     max_chars = int(defaults["max_chars"])
     exclude_globs = [str(item) for item in manifest.get("exclude_globs", [])]
 
-    warnings: list[str] = []
     gaps: list[str] = []
     dropped: list[DroppedSource] = []
     prepared_required: list[PreparedSource] = []

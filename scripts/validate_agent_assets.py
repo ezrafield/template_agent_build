@@ -20,7 +20,7 @@ CHAIN_WARN_BYTES = 16 * 1024
 CHAIN_MAX_BYTES = 20 * 1024
 SKILL_MAX_BYTES = 4 * 1024
 SKILL_DESCRIPTION_MAX_CHARS = 300
-EXPECTED_SKILL_COUNT = 10
+EXPECTED_SKILL_COUNT = 11
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 PLAN_RECORD_NAME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 PLAN_REQUIRED_HEADINGS = {
@@ -310,15 +310,18 @@ def validate_manifest_and_skills(root: Path, report: ValidationReport) -> dict:
     elif workflow.is_file():
         workflow_text = workflow.read_text(encoding="utf-8")
         if f"@openai/codex@{ci_version}" not in workflow_text:
-            report.error("Agent CI must install the Codex version pinned by the manifest.")
+            report.error("Optional experiment CI must use the Codex version pinned by the manifest.")
+        test_workflow = root / ".github" / "workflows" / "test.yml"
+        test_text = test_workflow.read_text(encoding="utf-8") if test_workflow.is_file() else ""
+        if not re.search(r"(?m)^\s*-\s+run:\s*python -m pytest(?:\s+-q)?\s*$", test_text):
+            report.error("Test CI must run the full `python -m pytest` suite, including agent tests.")
         for required_ci_command in (
-            "python -m pytest tests/agent -q",
             "python eval/context/run_task_context_eval.py",
             "python eval/behavior/run_behavior_eval.py",
             "python eval/advice/run_advice_eval.py",
         ):
             if required_ci_command not in workflow_text:
-                report.error(f"Agent CI must run `{required_ci_command}`.")
+                report.error(f"Optional experiment CI must offer `{required_ci_command}`.")
 
     entries = manifest.get("skills")
     if not isinstance(entries, list):
