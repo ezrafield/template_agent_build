@@ -12,7 +12,7 @@
 - Use fixtures for reusable setup data.
 
 ## Documentation
-- Keep `AGENTS.md` and `CLAUDE.md` concise.
+- Keep the shared `AGENTS.md` concise.
 - Put task-specific details in `.agent/tasks/`.
 - Put durable system knowledge in `docs/agent/`.
 - Put product intent in `docs/product/`.

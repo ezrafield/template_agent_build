@@ -11,3 +11,4 @@ remain active.
 - Run targeted tests only unless broader verification is explicitly requested.
 - Present a patch plan before editing authentication or authorization code.
 - Report changed files, commands run, and remaining risks.
+- After AI edits, before responding or handing off, append a concise summary to `change_logs/YYYY-MM-DD.md` using the local date. Create it as needed; reuse that day's file and preserve earlier entries. Include changes, key paths, and checks/pending work; omit secrets and private data. Read-only tasks need no entry.

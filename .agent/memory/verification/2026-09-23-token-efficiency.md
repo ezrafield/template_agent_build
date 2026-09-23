@@ -74,3 +74,17 @@ records the deliberate coverage reduction, independent review, and checks.
 Reviewed the targeted runner's changed default as well: the retained API smoke
 uses the current interpreter, while explicit commands and failure exit codes
 remain intact. Refreshed that testing-playbooks source fingerprint after review.
+
+Daily-change-log review (2026-09-23): verified the new default rule in both root
+entrypoints and the project-local `change_logs/` manifest exclusion. Added the
+concise convention/project fact and refreshed those reviewed source fingerprints;
+the decisions card's ownership/version claims remain supported. Kept provenance
+and index version unchanged. Evidence: `2026-09-23-daily-ai-change-log.md` in plans.
+Review clarified that the Claude rule applies to every edit, outside its
+non-trivial-task checklist; re-verified the corrected entrypoint fingerprint.
+
+Single-entrypoint review (2026-09-23): AGENTS.md now supplies shared project
+instructions; the manifest/setup no longer require or create CLAUDE.md. Verified
+project-facts, conventions and decisions against the revised manifest and
+CODEX_CUSTOMIZATION guidance. Removed the retired CLAUDE.md evidence reference,
+refreshed reviewed source hashes, and preserved provenance/index version.

@@ -4,7 +4,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "AGENTS.md",
-    "CLAUDE.md",
     "docs/agent/INDEX.md",
     "docs/agent/CODEMAP.md",
     "docs/agent/AGENTS_AND_SKILLS.md",

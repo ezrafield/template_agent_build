@@ -45,7 +45,6 @@ IGNORED_DIRECTORY_NAMES = {
 }
 REQUIRED_FILES = {
     "AGENTS.md",
-    "CLAUDE.md",
     "AGENTS.override.md.example",
     "agentkit-manifest.json",
     "docs/agent/INDEX.md",
@@ -481,7 +480,6 @@ def validate_plan_system(root: Path, report: ValidationReport) -> None:
 
     instruction_markers = {
         "AGENTS.md": ("$plan-evolution", ".agent/plans/"),
-        "CLAUDE.md": (".agent/plans/",),
     }
     for filename, markers in instruction_markers.items():
         path = root / filename

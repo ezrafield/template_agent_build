@@ -21,7 +21,7 @@ Read-only code discovery.
 - No destructive shell commands.
 
 ## Workflow
-1. Read `CLAUDE.md`.
+1. Read `AGENTS.md`.
 2. Read `docs/agent/INDEX.md`.
 3. If `.understand-anything/knowledge-graph.json` exists, search it for task terms.
 4. Read `docs/agent/CODEMAP.md`.

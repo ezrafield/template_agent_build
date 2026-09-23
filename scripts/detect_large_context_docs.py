@@ -5,9 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MAX_LINES = 200
 AUTO_LOADED_DOCS = [
     "AGENTS.md",
-    "CLAUDE.md",
     "src/AGENTS.md",
-    "src/CLAUDE.md",
     "tests/AGENTS.md",
 ]
 

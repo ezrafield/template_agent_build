@@ -62,7 +62,7 @@ their ownership. Shell wrappers `install.sh` and `update.sh` are also available.
 
 ## Everyday Workflow
 
-1. Start with `AGENTS.md` or `CLAUDE.md`, then use the [context index](docs/agent/INDEX.md).
+1. Start with `AGENTS.md`, then use the [context index](docs/agent/INDEX.md).
 2. Reuse an inspected current bundle for the same task and route. Rebuild when
    the task, options, requested ranges, or relevant sources change.
 3. Read compact warnings, gaps, source identities, and excerpts. Query memory with
@@ -73,6 +73,10 @@ their ownership. Shell wrappers `install.sh` and `update.sh` are also available.
    independent review under the existing implementation/review skills.
 5. Keep required plans under `.agent/plans/`; link their goals and check results
    from concise handoff checkpoints instead of duplicating the same narrative.
+6. After each AI change task, append a brief summary, key paths, and check results
+   to `change_logs/YYYY-MM-DD.md` (local date). Reuse the daily file and preserve
+   earlier entries. Logs stay project-owned across kit updates; read-only tasks
+   need no entry.
 
 The router uses deterministic rules. Semble search is optional and advisory;
 Jev advice never controls routes, permissions, context expansion, or completion.
@@ -102,6 +106,8 @@ and commands. Smaller test or document counts alone do not establish better task
 outcomes. Live effectiveness remains **not yet measured**.
 
 ## Optional Integrations
+
+Claude Code uses the same `AGENTS.md`; see [native support and migration](docs/agent/CODEX_CUSTOMIZATION.md#claude-code) for version/session requirements.
 
 Install optional tools only when their capabilities are useful. The [tool workspace guide](tools/agent/README.md)
 covers pinned Semble, Serena, Repomix, ast-grep, and RTK installations, their

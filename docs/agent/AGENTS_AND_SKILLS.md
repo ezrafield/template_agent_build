@@ -67,8 +67,10 @@ plan/checkpoint content rather than copying it into multiple logs.
 | `understand-refresh` | Installed Understand Anything plugin or `make understand` |
 
 The updater backs up and prunes only obsolete files previously recorded in
-`.agentkit-installed-files`. It never prunes merged entrypoints,
-copy-if-missing memory, or unrecorded project files.
+`.agentkit-installed-files`. It preserves current merged entrypoints,
+copy-if-missing memory, and unrecorded project files. A retired `CLAUDE.md` gets
+only its old kit block removed, with a backup; custom text is retained. See
+[migration details](CODEX_CUSTOMIZATION.md#claude-code).
 
 ## Claude Code Compatibility
 

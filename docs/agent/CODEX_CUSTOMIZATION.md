@@ -21,6 +21,22 @@ smaller internal budgets with `make validate-agent-assets`.
 Use `AGENTS.override.md.example` for temporary root replacement. Keep intentional
 nested overrides tracked; only the root local override is ignored.
 
+## Claude Code
+
+Use the shared `AGENTS.md` with Claude Code **2.1.277+**. Native support requires
+the built-in `agents-md` plugin and feature-flag access; it can be unavailable
+on Bedrock, with telemetry disabled, or in the first session after upgrading.
+Restart and check `/config` → **Project instructions**. The default is
+`claude-md-or-agents-md`; project/ancestor `CLAUDE.md` or `CLAUDE.local.md` files
+take precedence. Claude does not load `AGENTS.override.md`.
+See [Anthropic's instructions](https://code.claude.com/docs/en/memory#agents-md).
+
+The template no longer ships or creates `CLAUDE.md`. Updates back up and remove
+its old kit-managed block, preserving any project-specific text with a migration
+notice. Move that surviving text into `AGENTS.md` before deleting the legacy
+file. Review project memory that still cites the removed file. Setup preserves
+existing project instructions. Historical records can still mention the earlier layout.
+
 ## Skills
 
 Codex discovers repository skills under `.agents/skills/`. Every skill must have

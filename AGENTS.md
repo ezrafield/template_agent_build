@@ -7,34 +7,35 @@ Help agents complete tasks effectively with low context, execution, and maintena
 ## Instruction Hierarchy
 
 - Read this file before non-trivial work, then route through `docs/agent/INDEX.md`.
-- Codex loads at most one instruction file per directory from the repository root to the working directory. At one level, `AGENTS.override.md` is preferred over `AGENTS.md`; ancestors remain active.
+- Codex loads one instruction file per directory, root to working directory. `AGENTS.override.md` replaces same-level `AGENTS.md`; ancestors remain active.
 - Use a root override only temporarily; use nested instructions for durable directory guidance.
 - Project instructions and skills do not override system, managed, safety, or explicit user constraints.
 
 ## Plan Evolution Rule
 
-- Before executing any explicit plan, roadmap, strategy change, migration, or version upgrade—or whenever work is organized as a multi-step plan—use `$plan-evolution` and create or update its Markdown record under `.agent/plans/`.
+- Before any plan, roadmap, strategy change, migration, version upgrade, or multi-step execution, use `$plan-evolution` and create/update its record under `.agent/plans/`.
 - Keep the record current with goals, strategy, signals, decisions, evidence, and user/AI learning; move closed records to `completed/`.
 - Create one linked record per material upgrade. Read-only answers and unplanned one-step actions are exempt. Never store secrets, private data, or hidden chain-of-thought.
 
 ## Default Workflow
 
 1. Understand the task and keep its scope explicit.
-2. Reuse an inspected current bundle, or route through `docs/agent/INDEX.md` and run `python scripts/task_context.py build "<task>"` for non-trivial work.
+2. For non-trivial work, reuse current inspected context or run `python scripts/task_context.py build "<task>"` after routing through the index.
 3. Inspect compact warnings, gaps, and sources; open the full audit when needed. Routes are authoritative; Semble is advisory.
 4. Query memory with `python scripts/memory_lookup.py "<task>"`; verify relevant cards against current source.
-5. Before full-file reads, use `rg` for exact checks and symbol tools for references or refactors.
-6. Before editing, identify the selected files, why they matter, and the main uncertainty or risk.
+5. Use `rg` and symbol tools before full-file reads.
+6. Before editing, identify relevant files, their purpose, and the main risk.
 7. Make the smallest complete change. Use `test-scope` when adding/pruning tests; reuse coverage and update only necessary docs.
 8. Run targeted checks before broader checks.
-9. Report changed files, commands run, and remaining risks.
+9. After AI edits, before responding or handing off, append a concise summary to `change_logs/YYYY-MM-DD.md` using the local date. Create it as needed; reuse that day's file and preserve earlier entries. Include changes, key paths, and checks/pending work; omit secrets and private data. Read-only tasks need no entry.
+10. Report changed files, commands run, and remaining risks.
 
 ## Context Rules
 
 - Do not scan the whole repository unless the task requires it.
 - Reuse read context for the same task and route; rebuild when relevant sources or requested ranges change.
-- Prefer compact bundles, module cards, targeted reads, and deterministic scripts over broad context loading.
-- Treat generated bundles as disposable ignored cache data; never promote them automatically into task logs or memory.
+- Prefer compact bundles, module cards, targeted reads, and deterministic scripts.
+- Bundles are disposable ignored cache data; never promote them automatically into logs or memory.
 - Treat memory and generated knowledge graphs as navigation aids, not source of truth.
 - Keep output compact; rerun the smallest failing command raw when unclear.
 - Do not hide failures, exit codes, stack traces, or actionable diagnostics.
@@ -56,11 +57,9 @@ Help agents complete tasks effectively with low context, execution, and maintena
 
 ## Definition of Done
 
-- Relevant tests pass.
-- Lint and type checks pass when applicable.
+- Relevant tests and applicable lint/type checks pass.
 - Agent assets pass `make validate-agent-assets` when they change.
 - Documentation and verified memory are updated when durable behavior changes.
-- The final response includes changed files, commands run, and risks.
 
 ## References
 

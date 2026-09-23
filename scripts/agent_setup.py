@@ -163,24 +163,27 @@ def ensure_agent_entrypoints(stack: list[str], commands: dict[str, str]) -> None
     if not command_lines:
         command_lines = "- TODO: confirm project commands."
 
-    for filename in ["AGENTS.md", "CLAUDE.md"]:
-        path = ROOT / filename
-        if path.exists():
-            continue
-        path.write_text(
-            f"# {filename}\n\n"
-            f"Project stack: {summary}.\n\n"
-            "Prioritize effective task completion with low context and maintenance cost. "
-            "Reuse focused checks; apply `test-scope` when adding or pruning coverage. "
-            "Research evaluations are optional.\n\n"
-            "Start by reading `docs/agent/INDEX.md`, then build and inspect task context with "
-            "`python scripts/task_context.py build \"<task>\"` before non-trivial work.\n\n"
-            "Prefer compressed output for noisy commands when RTK is available, and rerun raw output only "
-            "when failures are unclear.\n\n"
-            "## Commands\n"
-            f"{command_lines}\n",
-            encoding="utf-8",
-        )
+    path = ROOT / "AGENTS.md"
+    if path.exists():
+        return
+    path.write_text(
+        "# AGENTS.md\n\n"
+        f"Project stack: {summary}.\n\n"
+        "Prioritize effective task completion with low context and maintenance cost. "
+        "Reuse focused checks; apply `test-scope` when adding or pruning coverage. "
+        "Research evaluations are optional.\n\n"
+        "After AI edits, before responding or handing off, append a concise summary to "
+        "`change_logs/YYYY-MM-DD.md` using the local date. Create it as needed; reuse "
+        "that day's file and preserve earlier entries. Include changes, key paths, "
+        "and checks/pending work; omit secrets and private data. Read-only tasks need no entry.\n\n"
+        "Start by reading `docs/agent/INDEX.md`, then build and inspect task context with "
+        "`python scripts/task_context.py build \"<task>\"` before non-trivial work.\n\n"
+        "Prefer compressed output for noisy commands when RTK is available, and rerun raw output only "
+        "when failures are unclear.\n\n"
+        "## Commands\n"
+        f"{command_lines}\n",
+        encoding="utf-8",
+    )
 
 
 def run_script(relative: str) -> int:

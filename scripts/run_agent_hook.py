@@ -24,7 +24,7 @@ AGENT_ASSET_FILES = {
     "AGENTS.md",
     "AGENTS.override.md",
     "AGENTS.override.md.example",
-    "CLAUDE.md",
+    "CLAUDE.md",  # Still watch project-owned legacy instructions during migration.
     "Makefile",
     "package.json",
     "agentkit-manifest.json",

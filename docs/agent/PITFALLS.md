@@ -1,6 +1,6 @@
 # Pitfalls
 
-- Do not turn `AGENTS.md` or `CLAUDE.md` into a full project manual.
+- Do not turn `AGENTS.md` into a full project manual.
 - Do not scan unrelated directories before checking `docs/agent/INDEX.md`.
 - Do not manually edit generated code maps without updating the generator.
 - Do not hide behavior changes in refactors.

@@ -17,6 +17,7 @@ Use this memory before implementing non-trivial template or code changes.
 - Prefer routed excerpts, targeted reads, `rg`, advisory Semble, module cards, and deterministic scripts over broad repository scans.
 - Make the smallest complete change. Reuse relevant coverage and update only necessary docs; use `test-scope` when adding or pruning tests.
 - Run targeted tests before broad checks.
+- After AI edits, append a brief summary, key paths, and checks/pending work to `change_logs/YYYY-MM-DD.md` using the local date before responding or handing off. Preserve earlier entries; read-only tasks need no entry.
 - Use compressed command output for noisy commands when RTK is available, and rerun raw output only when compressed output is unclear.
 - Keep long-term memory concise, reusable, and free of secrets or private data.
 - Query memory summaries and current evidence status before opening relevant cards; leave source fingerprints to deterministic validators.

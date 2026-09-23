@@ -179,6 +179,34 @@ def remove_empty_parents(path: Path, stop: Path) -> None:
         current = current.parent
 
 
+def retire_legacy_claude(target: Path, backup_root: Path) -> bool:
+    """Retire a stale recorded entrypoint without claiming its user-owned text."""
+    path = target / "CLAUDE.md"
+    guidance = "Consolidate user instructions into AGENTS.md and verify native AGENTS.md loading."
+    if path.is_symlink() or (path.exists() and not path.is_file()):
+        print(f"Warning: left legacy CLAUDE.md untouched because it is not a regular file. {guidance}")
+        return False
+    if not path.exists():
+        return False
+    try:
+        text = path.read_bytes().decode("utf-8")
+    except UnicodeDecodeError:
+        print(f"Warning: left non-UTF-8 legacy CLAUDE.md untouched. {guidance}")
+        return False
+    if text.count(BEGIN) != 1 or text.count(END) != 1 or text.index(BEGIN) > text.index(END):
+        print(f"Warning: left unmarked or ambiguously marked legacy CLAUDE.md untouched. {guidance}")
+        return False
+
+    remaining = text[:text.index(BEGIN)] + text[text.index(END) + len(END):]
+    backup_existing(target, Path("CLAUDE.md"), backup_root)
+    if not remaining.strip():
+        path.unlink()
+        return True
+    path.write_bytes(remaining.encode("utf-8"))
+    print(f"Warning: removed the kit block but retained user text in CLAUDE.md. {guidance}")
+    return False
+
+
 def prune_stale_files(
     target: Path,
     previous: set[str],
@@ -188,6 +216,10 @@ def prune_stale_files(
 ) -> list[str]:
     removed: list[str] = []
     for value in sorted(previous - current - protected):
+        if value == "CLAUDE.md":
+            if retire_legacy_claude(target, backup_root):
+                removed.append(value)
+            continue
         relative_path = safe_recorded_relative(value)
         if relative_path is None:
             print(f"Skipping unsafe stale path from {STATE_FILE}: {value}")

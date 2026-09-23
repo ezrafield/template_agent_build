@@ -1,7 +1,7 @@
 # User Flows
 
 ## Agent Starts A Task
-1. Agent reads `AGENTS.md` or `CLAUDE.md`.
+1. Agent reads `AGENTS.md`.
 2. Agent reads `docs/agent/INDEX.md`.
 3. Agent chooses relevant module cards.
 4. Agent inspects targeted files.

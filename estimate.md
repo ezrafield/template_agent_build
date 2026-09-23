@@ -3,7 +3,7 @@
 This estimate models how much time, token usage, and rework this template can save when it combines three context controls:
 
 1. Progressive source retrieval:
-   `AGENTS.md` / `CLAUDE.md` -> `docs/agent/INDEX.md` -> module cards / `CODEMAP.md` -> Semble -> `rg` -> optional Serena -> targeted files.
+   `AGENTS.md` -> `docs/agent/INDEX.md` -> module cards / `CODEMAP.md` -> Semble -> `rg` -> optional Serena -> targeted files.
 2. Lightweight long-term memory:
    inspect `.agent/memory/index.json` -> load only relevant semantic or procedural cards -> verify them against current files before use.
 3. RTK-aware command output:

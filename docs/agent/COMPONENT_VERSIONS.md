@@ -9,6 +9,7 @@ versions below are dated observations, not automatically tested upgrade targets.
 | Python | Core `>=3.11`; CI 3.11; optional tools `>=3.11,<3.14`, bootstrap 3.13 | Core 3.14.5; tools 3.13.13 | [3.14.7, 3.13.15, 3.11.16](https://www.python.org/downloads/) |
 | Node.js | `>=22`; CI 22 | 24.16.0 | [24.21.0 LTS](https://nodejs.org/en/blog/release/v24.21.0); [26.10.0 Current](https://nodejs.org/en/about/previous-releases) |
 | Codex CLI | Manifest/CI 0.146.0 | 0.154.0-alpha.6.1 | [0.156.0](https://learn.chatgpt.com/docs/changelog) |
+| Claude Code | Native AGENTS support requires 2.1.277+ | Not found on PATH | [Session requirements](https://code.claude.com/docs/en/memory#agents-md) |
 | Semble | 0.4.1; pathspec 1.1.1 | Matches lock | [0.6.0](https://pypi.org/project/semble/) |
 | Serena | 1.5.3; pathspec 0.12.1 | Matches lock | [1.7.0](https://pypi.org/project/serena-agent/) |
 | ast-grep | 0.44.0 | Matches lock | [0.45.3 GitHub release](https://github.com/ast-grep/ast-grep/releases/tag/0.45.3); npm tag unverified |

@@ -5,14 +5,14 @@ This template is now stronger as a reusable agent kit because it is not only a c
 ## Highest-Value Pieces
 
 1. Progressive context loading
-   - `AGENTS.md` and `CLAUDE.md` stay short.
+   - The shared `AGENTS.md` stays short.
    - `docs/agent/INDEX.md` routes agents to the smallest useful docs.
    - `docs/agent/CODEMAP.md` and module cards hold durable source context.
 
 2. Installer and manifest
    - `agentkit-manifest.json` separates harness files, merge files, copy-if-missing files, project-local files, exclusions, and symlinks.
    - `install.sh` and `update.sh` install the kit into real projects.
-   - `scripts/agentkit_installer.py` backs up existing agent config, merges managed blocks into `AGENTS.md` and `CLAUDE.md`, preserves project-local files, writes `.agentkit-version`, and records `.agentkit-installed-files`.
+   - `scripts/agentkit_installer.py` backs up existing agent config, merges managed blocks into `AGENTS.md`, preserves project-local files, writes `.agentkit-version`, and records `.agentkit-installed-files`.
 
 3. Setup skill
    - `.agents/skills/agent-setup/SKILL.md` defines the workflow.

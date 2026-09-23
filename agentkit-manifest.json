@@ -136,8 +136,7 @@
     "eval/skills/"
   ],
   "merge_files": [
-    "AGENTS.md",
-    "CLAUDE.md"
+    "AGENTS.md"
   ],
   "copy_if_missing_files": [
     ".agent/tasks/README.md",
@@ -159,6 +158,7 @@
     ".agent/plans/reports/.gitkeep"
   ],
   "project_local_files": [
+    "change_logs/",
     "src/",
     "tests/",
     "docs/product/",

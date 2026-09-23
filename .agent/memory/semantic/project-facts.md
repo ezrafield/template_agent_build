@@ -14,8 +14,9 @@ Use this memory when orienting on the template's purpose and baseline workflow.
 ## Content
 
 - This template prioritizes effective task completion with low context, execution, and maintenance cost; research evaluations are optional.
-- Agents start with `AGENTS.md` or `CLAUDE.md`, then reuse an inspected current bundle or compile task-specific Markdown for non-trivial work.
+- Agents start with the shared `AGENTS.md`, then reuse an inspected current bundle or compile task-specific Markdown for non-trivial work. Claude native-support requirements are documented in CODEX_CUSTOMIZATION.md.
 - `.agent/tasks/` is episodic memory: task-local notes and audit trails.
+- `change_logs/YYYY-MM-DD.md` holds concise daily AI change summaries; logs belong to the project and are preserved across kit updates.
 - `.agent/memory/` is long-term semantic and procedural memory that must be verified before use.
 - The Codex-first v0.5 catalog contains eleven discoverable skills under `.agents/skills/`, including `test-scope` for minimal necessary coverage.
 - `docs/agent/context-routes.json` is the validated route source; `INDEX.md` is its synchronized human explanation.
@@ -28,7 +29,6 @@ Use this memory when orienting on the template's purpose and baseline workflow.
 ## Related files
 
 - `AGENTS.md`
-- `CLAUDE.md`
 - `docs/agent/INDEX.md`
 - `docs/agent/context-routes.json`
 - `scripts/task_context.py`

@@ -22,11 +22,7 @@
       "evidence": [
         {
           "path": "AGENTS.md",
-          "sha256": "cb99841aa93d2b9a00a23df560029083cef4893b93e467c5a42c34c58ec4fbab"
-        },
-        {
-          "path": "CLAUDE.md",
-          "sha256": "f153f3f8942c1caae16c830b12517c1cf5a242d79adc7e903f2feabecf52cb3f"
+          "sha256": "81957fcc8b941f16e6d35413b826b9d8a19c5a4c6c2eb0447bbf97e05b3c3044"
         },
         {
           "path": "docs/agent/INDEX.md",
@@ -46,11 +42,11 @@
         },
         {
           "path": "agentkit-manifest.json",
-          "sha256": "326da0b823f55bdae61c5aa63b3c98b981b4ea757647778f870879c514d4aa62"
+          "sha256": "252006f3a77785ada79e47a49b4edc0fedaa5e7a7555013f4372b64f93132b2e"
         },
         {
           "path": "docs/agent/CODEX_CUSTOMIZATION.md",
-          "sha256": "91dfb74d37a269371aa3cc39baa4b613768a35d339275f5defd4d033f4dd96ad"
+          "sha256": "eec59ca63943edf47b9b1115c75f1989bd2578ff3052f63efb5fc7c79005446f"
         },
         {
           "path": "docs/agent/MEMORY_POLICY.md",
@@ -93,7 +89,7 @@
       "evidence": [
         {
           "path": "AGENTS.md",
-          "sha256": "cb99841aa93d2b9a00a23df560029083cef4893b93e467c5a42c34c58ec4fbab"
+          "sha256": "81957fcc8b941f16e6d35413b826b9d8a19c5a4c6c2eb0447bbf97e05b3c3044"
         },
         {
           "path": "docs/agent/CODE_SEARCH.md",
@@ -109,7 +105,7 @@
         },
         {
           "path": "docs/agent/CODEX_CUSTOMIZATION.md",
-          "sha256": "91dfb74d37a269371aa3cc39baa4b613768a35d339275f5defd4d033f4dd96ad"
+          "sha256": "eec59ca63943edf47b9b1115c75f1989bd2578ff3052f63efb5fc7c79005446f"
         },
         {
           "path": ".agents/skills/plan-evolution/SKILL.md",
@@ -171,11 +167,11 @@
         },
         {
           "path": "agentkit-manifest.json",
-          "sha256": "326da0b823f55bdae61c5aa63b3c98b981b4ea757647778f870879c514d4aa62"
+          "sha256": "252006f3a77785ada79e47a49b4edc0fedaa5e7a7555013f4372b64f93132b2e"
         },
         {
           "path": "docs/agent/AGENTS_AND_SKILLS.md",
-          "sha256": "9c38c1908326bd09aaabd6d0e22e2130a066e1fc8612ce4ea306f651202aa96d"
+          "sha256": "aa64c5fb79f2f58051103d04388fda6eb2b6ea3ba8810e317ccd66cbb01bfcc5"
         },
         {
           "path": "docs/adr/0005-measurable-reliability.md",
