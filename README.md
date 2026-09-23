@@ -128,6 +128,7 @@ planning dependency upgrades; a newer release alone does not establish compatibi
 
 | Need | Start here |
 | --- | --- |
+| Visual architecture, routing, workflow, and coordination | [Template map](docs/agent/TEMPLATE_MAP.md) |
 | Agent entrypoints and task routing | [AGENTS.md](AGENTS.md), [context index](docs/agent/INDEX.md) |
 | Context selection, budgets, expansion | [Context router](docs/agent/CONTEXT_ROUTER.md) |
 | Commands and tools | [Generated commands](docs/agent/COMMANDS.md), [tool reference](docs/agent/TOOLS.md) |
